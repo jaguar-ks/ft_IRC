@@ -8,7 +8,7 @@ INC_DIR = inc
 
 FLGS = -Wall -Wextra -Werror -std=c++98
 
-NAME = ft_IRC
+NAME = ircserv
 
 all : $(NAME)
 

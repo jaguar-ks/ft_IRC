@@ -32,7 +32,7 @@
 *.exe
 *.out
 *.app
-WebServ
+ircserv
 
 #tests
 tst.*

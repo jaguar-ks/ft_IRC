@@ -19,6 +19,7 @@ int main(int ac, char **av) {
             exit(1);
         }
         Server *srv = Server::InstanceServer(static_cast<unsigned short>(port), pwd);
+        (void)srv;
         // int ClntFd;
         // const sockaddr_in *ptr = srv->getAddr();
         // size_t sz = sizeof(srv->getAddr());
@@ -37,5 +38,9 @@ int main(int ac, char **av) {
         //     if (!strcmp(bf, "hbs"))
         //         break ;
         // }
+    }
+    else {
+        cerr << "Invalide Arguments : Usage : ./ircserv <port> <password>" << endl;
+        return 1;
     }
 }
