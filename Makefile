@@ -1,4 +1,4 @@
-SRC = src/main.cpp src/Server.cpp
+SRC = src/main.cpp src/Server.cpp src/Client.cpp
 
 OBJ_DIR = obj
 

@@ -16,7 +16,7 @@ Server *Server::InstanceServer(string &port, string &psw) {
         hnt.ai_family = AF_INET;
         hnt.ai_protocol = IPPROTO_TCP;
         hnt.ai_socktype = SOCK_STREAM;
-        int status = getaddrinfo("localhost", port.c_str(), &hnt, &ptr), opt_val = 1;
+        int status = getaddrinfo("0.0.0.0", port.c_str(), &hnt, &ptr), opt_val = 1;
         if (status) {
             cerr << "Getting Address Info : " << gai_strerror(status) << endl;
             exit(1);
@@ -51,14 +51,70 @@ Server *Server::InstanceServer(string &port, string &psw) {
     return Instance;
 }
 
+// Welcoming Function
+string Server::Welcome() {
+    string Wlcm;
+    Wlcm += "\t██╗    ██╗███████╗██╗      ██████╗ ██████╗ ███╗   ███╗███████╗\n";
+    Wlcm += "\t██║    ██║██╔════╝██║     ██╔════╝██╔═══██╗████╗ ████║██╔════╝\n";
+    Wlcm += "\t██║ █╗ ██║█████╗  ██║     ██║     ██║   ██║██╔████╔██║█████╗  \n";
+    Wlcm += "\t██║███╗██║██╔══╝  ██║     ██║     ██║   ██║██║╚██╔╝██║██╔══╝  \n";
+    Wlcm += "\t╚███╔███╔╝███████╗███████╗╚██████╗╚██████╔╝██║ ╚═╝ ██║███████╗\n";
+    Wlcm += "\t ╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝\n";
+    Wlcm += "\t\t\tMade By : 0xJ4GU4R | 0x54B4 | 0xF4551\n";
+    Wlcm += "For help type: HELP\n";
+    return Wlcm;
+}
+
 void Server::launchServer() {
-    int count = poll(&this->ClFds[0], this->ClFds.size(), -1);
+    int count = poll(&this->ClFds[0], this->ClFds.size(), 0);
     if (count < 0) {
         cerr << "Poll() function : " << strerror(errno) << endl;
         exit(1);
     }
-    // for (size_t i = 0; i < this->ClFds.size(), i++) {
-    //     if (this->ClFds[i].revents == POLLIN)
-    //         // (this->SockFd == this->ClFds[i].fd);  // ? new client : client request;
-    // }
+    for (size_t i = 0; i < this->ClFds.size(); i++) {
+        if (this->ClFds[i].revents == POLLIN)
+            (this->SockFd == this->ClFds[i].fd) ? this->JoinServer() : this->ReplyToClient(this->Clients[this->ClFds[i].fd]); //? this->JoinServer() : this->;  // ? new client : client request;
+    }
+}
+
+bool Server::JoinServer() {
+    sockaddr_in ClntAddr;
+    socklen_t len = sizeof(sockaddr_in);
+    memset(&ClntAddr, 0, len);
+    int ClntFd = accept(this->SockFd, (sockaddr *)&ClntAddr, &len);
+    if (ClntFd < 0) {
+        cerr << "Establishing Connection : " << strerror(errno) << endl;
+        return false;
+    }
+    this->Clients.insert(pair<int, Client>(ClntFd, Client(ClntFd, &ClntAddr.sin_addr)));
+    this->ClFds.push_back(pollfd());
+    this->ClFds.back().fd = ClntFd;
+    this->ClFds.back().events = POLLIN;
+    return true;
+}
+
+bool Server::ReplyToClient(Client Clnt) {
+    char    Buff[3000];
+    memset(Buff, 0, 3000);
+    if (recv(Clnt.getClntFd(), Buff, 3000, 0) > 0) {
+        string Msg(Buff);
+        Clnt.getMsg() += Msg;
+        if (Clnt.getMsg().back() != '\n')
+            return true;
+        if (!Clnt.alreadyIn())
+            cout << "Request From a Client : [" << Clnt.getHstName() << "]" << Msg << endl;
+            // cout << "REGESTER" << endl; //Client Regester
+        else
+            cout << "Request From a Client : [" << Clnt.getHstName() << "]" << Buff<< endl;
+        return true;
+    }
+    cerr << "Reading Message from Client : " << strerror(errno) << endl;
+    vector<pollfd>::iterator it = this->ClFds.begin();
+    for (; it != this->ClFds.end(); it++)
+        if (it->fd == Clnt.getClntFd())
+            break;
+    this->ClFds.erase(it);
+    close(Clnt.getClntFd());
+    this->Clients.erase(Clnt.getClntFd());
+    return false;
 }
