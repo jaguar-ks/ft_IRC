@@ -44,6 +44,6 @@ class Server {
         const Server        *getInstance() const {return this->Instance;}
         void                launchServer();
         bool                JoinServer();
-        bool                ReplyToClient(Client Clnt);
+        bool                ReplyToClient(Client &Clnt);
         static string       Welcome();
 };
