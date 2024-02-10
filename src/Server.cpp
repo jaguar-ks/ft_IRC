@@ -44,6 +44,8 @@ Server *Server::InstanceServer(string &port, string &psw) {
             close(Instance->SockFd);
             exit(1);
         }
+        socklen_t len = sizeof(sockaddr_in);
+        getsockname(Instance->SockFd, (sockaddr *)&Instance->Addr, &len);
         Instance->ClFds.push_back(pollfd());
         Instance->ClFds.back().fd = Instance->SockFd;
         Instance->ClFds.back().events = POLLIN;
@@ -101,9 +103,14 @@ bool Server::ReplyToClient(Client Clnt) {
         Clnt.getMsg() += Msg;
         if (Clnt.getMsg().back() != '\n')
             return true;
-        if (!Clnt.alreadyIn())
+        if (!Clnt.alreadyIn()){
             cout << "Request From a Client : [" << Clnt.getHstName() << "]" << Msg << endl;
             // cout << "REGESTER" << endl; //Client Regester
+            for(size_t i = 0; i < Msg.size(); i++)
+                if (!isalnum(Msg.at(i)))
+                    cout << (int)Msg.at(i) << ", ";
+            cout << endl;
+        }
         else
             cout << "Request From a Client : [" << Clnt.getHstName() << "]" << Buff<< endl;
         return true;

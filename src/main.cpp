@@ -13,6 +13,7 @@ int main(int ac, char **av) {
         string pwd(av[2]);
         string prt(av[1]);  
         Server *srv = Server::InstanceServer(prt, pwd);
+        cout << "\t\t[Server Started]" << endl << "Port: " << prt << endl;
         while (!interpted)
             srv->launchServer();
     }
