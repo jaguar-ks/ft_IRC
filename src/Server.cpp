@@ -4,6 +4,14 @@ Server *Server::Instance = NULL;
 
 bool isdigit_b(int c) {return isdigit(c);}
 
+/*
+    Making an Instance of the Server
+    and setting up and make it ready
+    to lunch if it does not already 
+    exists and if an error happend
+    an error is getting printed discribing
+    what happend
+*/
 Server *Server::InstanceServer(string &port, string &psw) {
     if (!Instance) {
         Instance = new Server();
@@ -67,6 +75,12 @@ string Server::Welcome() {
     return Wlcm;
 }
 
+/*
+    Checking if any of the socket
+    file discriptors are ready to
+    for to read from as behaving
+    according to which file
+*/
 void Server::launchServer() {
     int count = poll(&this->ClFds[0], this->ClFds.size(), 0);
     if (count < 0) {
@@ -78,6 +92,14 @@ void Server::launchServer() {
             (this->SockFd == this->ClFds[i].fd) ? this->JoinServer() : this->ReplyToClient(this->Clients[this->ClFds[i].fd]); //? this->JoinServer() : this->;  // ? new client : client request;
 }
 
+/*
+    If an incomming connection tring
+    to connect to the server it get
+    identified and registred if no
+    error accured if it does an error
+    discribing the problem happend is
+    gettign pritned
+*/
 bool Server::JoinServer() {
     sockaddr_in ClntAddr;
     socklen_t len = sizeof(sockaddr_in);
@@ -94,6 +116,12 @@ bool Server::JoinServer() {
     return true;
 }
 
+/*
+    Taking the incomming message form
+    the client and and behaving acordding
+    to what does he sent otherwise an error
+    discribing the problem is printed
+*/
 bool Server::ReplyToClient(Client &Clnt) {
     char    Buff[3000];
     memset(Buff, 0, 3000);

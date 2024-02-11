@@ -28,18 +28,16 @@ class Client {
 		int     ClntFd;     // The file discriptor of the Client Socket
         bool    Regestred;  // True if Already registred to the server and False if not 
 	public:
+        /*      [CONSTRUCTERS]      */
         Client() {}
         Client(int ClntFd, in_addr *ClntAddr);
-        // Check if already regestred
+        /****************************/
+        /*         [GETTERS]        */
         bool          alreadyIn(void) const {return this->Regestred;}
-        // FileDiscriptor Of The ClientSocket GETTER
 		int           getClntFd(void) const {return this->ClntFd;}
-        // User Name GETTER
 		const string  &getUsrName(void) const {return this->UsrName;}
-        // Nick Name GETTER
 		const string  &getNckName(void) const {return this->NckName;}
-        // Get Msg That the Client sent
 		string        &getMsg(void) {return this->Msg;}
-        // Host Name GETTER
 		const string  &getHstName(void) const {return this->HstName;}
+        /****************************/
 };

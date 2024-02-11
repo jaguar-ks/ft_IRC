@@ -37,13 +37,15 @@ class Server {
         /****************************************/
     public:
         ~Server() {delete Instance;}
+        void                launchServer();
+        bool                JoinServer();
+        bool                ReplyToClient(Client &Clnt);
+        static string       Welcome();
+        /*       [GETTERS]       */
         static Server       *InstanceServer(string &port, string &Pswd);
         int                 getSockFd() const {return this->SockFd;}
         const sockaddr_in   *getAddr() const {return &this->Addr;}
         string              getPswd() const {return this->Pswd;}
         const Server        *getInstance() const {return this->Instance;}
-        void                launchServer();
-        bool                JoinServer();
-        bool                ReplyToClient(Client &Clnt);
-        static string       Welcome();
+        /*************************/
 };
