@@ -73,10 +73,9 @@ void Server::launchServer() {
         cerr << "Poll() function : " << strerror(errno) << endl;
         exit(1);
     }
-    for (size_t i = 0; i < this->ClFds.size(); i++) {
-        if (this->ClFds[i].revents == POLLIN)
+    for (size_t i = 0; i < this->ClFds.size(); i++)
+        if (this->ClFds[i].revents & POLLIN)
             (this->SockFd == this->ClFds[i].fd) ? this->JoinServer() : this->ReplyToClient(this->Clients[this->ClFds[i].fd]); //? this->JoinServer() : this->;  // ? new client : client request;
-    }
 }
 
 bool Server::JoinServer() {
@@ -98,25 +97,20 @@ bool Server::JoinServer() {
 bool Server::ReplyToClient(Client &Clnt) {
     char    Buff[3000];
     memset(Buff, 0, 3000);
-    if (recv(Clnt.getClntFd(), Buff, 3000, 0) > 0) {
+    int val = recv(Clnt.getClntFd(), Buff, 3000, 0);
+    if (val > 0) {
         string Msg(Buff);
         Clnt.getMsg() += Msg;
         if (Clnt.getMsg().back() != '\n')
             return true;
-        if (!Clnt.alreadyIn()){
+        if (!Clnt.alreadyIn())
             cout << "Request From a Client : [" << Clnt.getHstName() << "]" << Clnt.getMsg() << endl;
-            // cout << "REGESTER" << endl; //Client Regester
-            // for(size_t i = 0; i < Msg.size(); i++)
-            //     if (!isalnum(Msg.at(i)))
-            //         cout << (int)Msg.at(i) << ", ";
-            // cout << endl;
-        }
         else
             cout << "Request From a Client : [" << Clnt.getHstName() << "]" << Clnt.getMsg() << endl;
         Clnt.getMsg() = "";
         return true;
     }
-    cerr << "Reading Message from Client : " << strerror(errno) << endl;
+    cerr << "Reading Message from Client : " << (val ? strerror(errno) : "Connection Closed.") << endl;
     vector<pollfd>::iterator it = this->ClFds.begin();
     for (; it != this->ClFds.end(); it++)
         if (it->fd == Clnt.getClntFd())
