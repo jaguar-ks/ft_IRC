@@ -103,14 +103,15 @@ bool Server::ReplyToClient(Client &Clnt) {
         Clnt.getMsg() += Msg;
         if (Clnt.getMsg().back() != '\n')
             return true;
+        Clnt.getMsg().pop_back();
         if (!Clnt.alreadyIn())
-            cout << "Request From a Client : [" << Clnt.getHstName() << "]" << Clnt.getMsg() << endl;
+            cout << "Request From a Client[" << Clnt.getHstName() << "] : " << Clnt.getMsg() << endl;
         else
-            cout << "Request From a Client : [" << Clnt.getHstName() << "]" << Clnt.getMsg() << endl;
+            cout << "Request From a Client[" << Clnt.getHstName() << "] : " << Clnt.getMsg() << endl;
         Clnt.getMsg() = "";
         return true;
     }
-    cerr << "Reading Message from Client : " << (val ? strerror(errno) : "Connection Closed.") << endl;
+    cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
     vector<pollfd>::iterator it = this->ClFds.begin();
     for (; it != this->ClFds.end(); it++)
         if (it->fd == Clnt.getClntFd())
