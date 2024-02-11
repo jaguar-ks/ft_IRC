@@ -25,7 +25,6 @@ class Client;
 class Server {
     private:
         int                 SockFd;     // File discriptor of the server socket
-        sockaddr_in         Addr;       // C structure used to specify the address and port for communication over the Internet using IPv4
         static Server       *Instance;  // This pointer will make the class have only one inctance
         string              Pswd;       // This string represent the password the client shold provide to log to the server
         vector<pollfd>      ClFds;      // This vector will hold an array of the struct used to send to poll() function
@@ -40,12 +39,12 @@ class Server {
         void                launchServer();
         bool                JoinServer();
         bool                ReplyToClient(Client &Clnt);
-        static string       Welcome();
+        void                SetSockFd(string &port);
         /*       [GETTERS]       */
         static Server       *InstanceServer(string &port, string &Pswd);
         int                 getSockFd() const {return this->SockFd;}
-        const sockaddr_in   *getAddr() const {return &this->Addr;}
         string              getPswd() const {return this->Pswd;}
         const Server        *getInstance() const {return this->Instance;}
         /*************************/
+        static string       Welcome();
 };

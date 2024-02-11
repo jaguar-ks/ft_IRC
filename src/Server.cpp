@@ -5,6 +5,43 @@ Server *Server::Instance = NULL;
 bool isdigit_b(int c) {return isdigit(c);}
 
 /*
+    This member function open a socket
+    for the server and bind it otherwise
+    if a problem accured and error is
+    printed indicating the what causing
+    the problem  
+*/
+void Server::SetSockFd(string &port) {
+    struct addrinfo *ptr, *tmp, hnt;
+    memset(&hnt, 0, sizeof(hnt));
+    hnt.ai_family = AF_INET;
+    hnt.ai_protocol = IPPROTO_TCP;
+    hnt.ai_socktype = SOCK_STREAM;
+    int status = getaddrinfo("0.0.0.0", port.c_str(), &hnt, &ptr), opt_val = 1;
+    if (status) {
+        cerr << "Getting Address Info : " << gai_strerror(status) << endl;
+        exit(1);
+    }
+    for (tmp = ptr; tmp; tmp = tmp->ai_next) {
+        this->SockFd = socket(tmp->ai_family, tmp->ai_socktype, tmp->ai_protocol);
+        if (this->SockFd < 0)
+            continue;
+        setsockopt(this->SockFd, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val));
+        if (bind(this->SockFd, tmp->ai_addr, tmp->ai_addrlen)) {
+            close(this->SockFd);
+            continue;
+        }
+        break ;
+    }
+    freeaddrinfo(ptr);
+    if (!tmp) {
+        cerr << "Binding The Socket : " << strerror(errno) << endl;
+        close(this->SockFd);
+        exit(1);
+    }
+}
+
+/*
     Making an Instance of the Server
     and setting up and make it ready
     to lunch if it does not already 
@@ -15,45 +52,17 @@ bool isdigit_b(int c) {return isdigit(c);}
 Server *Server::InstanceServer(string &port, string &psw) {
     if (!Instance) {
         Instance = new Server();
-        struct addrinfo *ptr, *tmp, hnt;
         if (find_if_not(port.begin(), port.end(), isdigit_b) != port.end() || psw.empty()){
             cerr << "Invalid Argument: " << (!psw.empty() ? "The port must contain only numbers." : "Empty Password.") << endl;
             exit(1);
         }
-        memset(&hnt, 0, sizeof(hnt));
-        hnt.ai_family = AF_INET;
-        hnt.ai_protocol = IPPROTO_TCP;
-        hnt.ai_socktype = SOCK_STREAM;
-        int status = getaddrinfo("0.0.0.0", port.c_str(), &hnt, &ptr), opt_val = 1;
-        if (status) {
-            cerr << "Getting Address Info : " << gai_strerror(status) << endl;
-            exit(1);
-        }
-        for (tmp = ptr; tmp; tmp = tmp->ai_next) {
-            Instance->SockFd = socket(tmp->ai_family, tmp->ai_socktype, tmp->ai_protocol);
-            if (Instance->SockFd < 0)
-                continue;
-            setsockopt(Instance->SockFd, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val));
-            if (bind(Instance->SockFd, tmp->ai_addr, tmp->ai_addrlen)) {
-                close(Instance->SockFd);
-                continue;
-            }
-            break ;
-        }
-        freeaddrinfo(ptr);
-        if (!tmp) {
-            cerr << "Binding The Socket : " << strerror(errno) << endl;
-            close(Instance->SockFd);
-            exit(1);
-        }
+        Instance->SetSockFd(port);
         Instance->Pswd = psw;
         if (listen(Instance->SockFd, max_connection)) {
             cerr << "Listening : " << strerror(errno) << endl;
             close(Instance->SockFd);
             exit(1);
         }
-        socklen_t len = sizeof(sockaddr_in);
-        getsockname(Instance->SockFd, (sockaddr *)&Instance->Addr, &len);
         Instance->ClFds.push_back(pollfd());
         Instance->ClFds.back().fd = Instance->SockFd;
         Instance->ClFds.back().events = POLLIN;
