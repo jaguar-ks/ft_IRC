@@ -13,6 +13,8 @@
 #include <unistd.h>
 #include <climits>
 #include <csignal>
+#include <cstring>
+#include <cerrno>
 #include <arpa/inet.h>
 #include "Client.hpp"
 

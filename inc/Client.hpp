@@ -21,12 +21,14 @@ class Server;
 
 class Client {
 	private:
+		string  SrvPss;    // User Name
 		string  UsrName;    // User Name
 		string  NckName;    // Nick Name
 		string  HstName;    // Host Name or IP address of The ClientMachine
         string  Msg;        // Client Messag
 		int     ClntFd;     // The file discriptor of the Client Socket
         bool    Regestred;  // True if Already registred to the server and False if not 
+		// static	map<string, void (Client::*)(string &)> Athentication;
 	public:
         /*      [CONSTRUCTERS]      */
         Client() {}
@@ -39,5 +41,9 @@ class Client {
 		const string  &getNckName(void) const {return this->NckName;}
 		string        &getMsg(void) {return this->Msg;}
 		const string  &getHstName(void) const {return this->HstName;}
+		void		  setNckName(string &){}
+		void		  setUsrName(string &){}
+		void		  setSrvPss(string &){}
         /****************************/
+		bool		  ParsAndExec();
 };
