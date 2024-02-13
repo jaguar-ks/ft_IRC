@@ -2,6 +2,9 @@
 
 // Default Constructor
 Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false) {
+    this->Athentication["PASS"] = static_cast<void (Client::*)(string &)>(&Client::setSrvPss);
+    this->Athentication["NICK"] = static_cast<void (Client::*)(string &)>(&Client::setNckName);
+    this->Athentication["USER"] = static_cast<void (Client::*)(string &)>(&Client::setUsrName);
     // this->Athentication.insert(pair<string, void (Client::*)(string &)>(string("PASS"), static_cast<void (Client::*)(string &)>(&Client::setSrvPss)));
     // this->Athentication.insert(pair<string, void (Client::*)(string &)>(string("NICK"), static_cast<void (Client::*)(string &)>(&Client::setNckName)));
     // this->Athentication.insert(pair<string, void (Client::*)(string &)>(string("USER"), static_cast<void (Client::*)(string &)>(&Client::setUsrName)));
@@ -17,6 +20,7 @@ bool    Client::ParsAndExec() {
     if (!this->Regestred) {
         cout << "Athonticating" << endl;
         this->Regestred = true;
+        cout << Server::getInstance()->getPswd() << endl;
         // if (this->Athentication.find(this->Msg.substr(0,4)) != this->Athentication.end())
             // (this->*Athentication[this->Msg.substr(0,4)])(this->Msg);
         // else
