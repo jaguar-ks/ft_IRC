@@ -29,7 +29,7 @@ class Client {
         string  Msg;        // Client Messag
 		int     ClntFd;     // The file discriptor of the Client Socket
         bool    Regestred;  // True if Already registred to the server and False if not 
-		map<string, void (Client::*)(string &)> Athentication;
+		map<string, void (Client::*)(string )> Athentication;
 	public:
         /*      [CONSTRUCTERS]      */
         Client() {}
@@ -42,9 +42,9 @@ class Client {
 		const string  &getNckName(void) const {return this->NckName;}
 		string        &getMsg(void) {return this->Msg;}
 		const string  &getHstName(void) const {return this->HstName;}
-		void		  setNckName(string &){}
-		void		  setUsrName(string &){}
-		void		  setSrvPss(string &){}
+		void		  setNckName(string ){}
+		void		  setUsrName(string ){}
+		void		  setSrvPss(string ){}
         /****************************/
 		bool		  ParsAndExec();
 };

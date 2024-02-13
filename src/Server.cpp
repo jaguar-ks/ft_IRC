@@ -140,7 +140,8 @@ bool Server::ReplyToClient(Client &Clnt) {
         Clnt.getMsg() += Msg;
         if (Clnt.getMsg().substr(Clnt.getMsg().size()-2) != "\r\n")
             return true;
-        Clnt.getMsg().pop_back();
+        Clnt.getMsg().erase(Clnt.getMsg().size()-2);
+        Clnt.getMsg().erase(0, Clnt.getMsg().find_first_not_of(" \t\n\v\f\r"));
         return Clnt.ParsAndExec();
     }
     cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
