@@ -46,6 +46,7 @@ class Server {
         static Server       *InstanceServer(string &port, string &Pswd);
         int                 getSockFd() const {return this->SockFd;}
         string              getPswd() const {return this->Pswd;}
+        map<int, Client>    &getClients() {return this->Clients;}
         static Server        *getInstance() {return Instance;}
         /*************************/
         static string       Welcome();
