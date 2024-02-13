@@ -18,7 +18,6 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
 
 bool    Client::ParsAndExec() {
     if (!this->Regestred) {
-        cout << "Athonticating" << endl;
         if (this->Athentication.find(this->Msg.substr(0,4)) != this->Athentication.end())
             (this->*Athentication[this->Msg.substr(0,4)])(this->Msg);
         else
@@ -31,7 +30,10 @@ bool    Client::ParsAndExec() {
         //     cout << "No such Command or Command not authorised" << endl;
     }
     else
+    {
         cout << "Do Command" << endl;
+
+    }
     this->Msg = "";
     return true;
 }

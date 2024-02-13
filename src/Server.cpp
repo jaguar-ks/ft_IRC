@@ -52,7 +52,7 @@ void Server::SetSockFd(string &port) {
 Server *Server::InstanceServer(string &port, string &psw) {
     if (!Instance) {
         Instance = new Server();
-        if (find_if_not(port.begin(), port.end(), isdigit_b) != port.end() || psw.empty()){
+        if (port.find_first_not_of("0123456789") != string::npos){
             cerr << "Invalid Argument: " << (!psw.empty() ? "The port must contain only numbers." : "Empty Password.") << endl;
             exit(1);
         }
