@@ -118,7 +118,7 @@ bool Server::JoinServer() {
         cerr << "Establishing Connection : " << strerror(errno) << endl;
         return false;
     }
-    this->Clients.insert(pair<int, Client>(ClntFd, Client(ClntFd, &ClntAddr.sin_addr)));
+    this->Clients[ClntFd] = Client(ClntFd, &ClntAddr.sin_addr);
     this->ClFds.push_back(pollfd());
     this->ClFds.back().fd = ClntFd;
     this->ClFds.back().events = POLLIN;
@@ -138,14 +138,9 @@ bool Server::ReplyToClient(Client &Clnt) {
     if (val > 0) {
         string Msg(Buff);
         Clnt.getMsg() += Msg;
-        if (Clnt.getMsg().back() != '\n')
+        if (Clnt.getMsg().back() != '\n' || Clnt.getMsg().find('\r') != Clnt.getMsg().size() - 2)
             return true;
         Clnt.getMsg().pop_back();
-        
-        // if (!Clnt.alreadyIn())
-        //     cout << "Request From a Client[" << Clnt.getHstName() << "] : " << Clnt.getMsg() << endl;
-        // else
-        //     cout << "Request From a Client[" << Clnt.getHstName() << "] : " << Clnt.getMsg() << endl;
         return Clnt.ParsAndExec();
     }
     cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
