@@ -138,7 +138,7 @@ bool Server::ReplyToClient(Client &Clnt) {
     if (val > 0) {
         string Msg(Buff);
         Clnt.getMsg() += Msg;
-        if (Clnt.getMsg().back() != '\n' || Clnt.getMsg().find('\r') != Clnt.getMsg().size() - 2)
+        if (Clnt.getMsg().substr(Clnt.getMsg().size()-2) != "\r\n")
             return true;
         Clnt.getMsg().pop_back();
         return Clnt.ParsAndExec();
