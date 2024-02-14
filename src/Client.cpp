@@ -11,13 +11,27 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
     this->HstName = inet_ntoa(*ClntAddr);
 }
 
-// void    Client::setSrvPss(string &Cmd) {
-//     string Pss = Cmd.substr(Cmd.find_first_of(" "));
-
-// }
+void    Client::setCmd(string line) {
+    size_t i = 0;
+    while (line.find(' ') != string::npos && !line.empty()) {
+        this->Cmd.push_back(line.substr(0, line.find(' ')));
+        i = line.find(' ');
+        for (; i < line.size() && line.at(i) == ' '; i++);
+        if (line.empty() || line.at(i) == ':') {
+            i+=(!line.empty());
+            break ;
+        }
+        line = line.substr(i);
+    }
+    if (!line.empty())
+        this->Cmd.push_back(line.substr(i));
+}
 
 bool    Client::ParsAndExec() {
-    (this->Msg.find('\n') != string::npos) ? this->Cmd.push_back(this->Msg.substr(0, this->Msg.find(' '))) : this->Cmd.push_back(this->Msg);
+    // (this->Msg.find('\n') != string::npos) ? this->Cmd.push_back(this->Msg.substr(0, this->Msg.find(' '))) : this->Cmd.push_back(this->Msg);
+    this->setCmd(this->Msg);
+    for (size_t i = 0; i < this->Cmd.size(); i++)
+        cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? "|" : "|\n");
     if (!this->Regestred) {
         if (this->Athentication.find(this->Msg.substr(0,4)) != this->Athentication.end())
             (this->*Athentication[this->Msg.substr(0,4)])(this->Msg);

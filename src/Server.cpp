@@ -142,6 +142,7 @@ bool Server::ReplyToClient(Client &Clnt) {
             return true;
         Clnt.getMsg().erase(Clnt.getMsg().size()-2);
         Clnt.getMsg().erase(0, Clnt.getMsg().find_first_not_of(" \t\n\v\f\r"));
+        cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Clnt.getMsg() << endl;
         return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
     }
     cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
