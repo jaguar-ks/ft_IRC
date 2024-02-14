@@ -47,6 +47,7 @@ class Client {
 		bool		  setNckName(string);
 		bool		  setUsrName(string);
 		bool		  setSrvPss(string);
+		void		  setCmd(string);
         /****************************/
 		bool		  ParsAndExec();
 };
