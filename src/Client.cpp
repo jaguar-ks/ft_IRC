@@ -17,6 +17,7 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
 // }
 
 bool    Client::ParsAndExec() {
+    (this->Msg.find('\n') != string::npos) ? this->Cmd.push_back(this->Msg.substr(0, this->Msg.find(' '))) : this->Cmd.push_back(this->Msg);
     if (!this->Regestred) {
         if (this->Athentication.find(this->Msg.substr(0,4)) != this->Athentication.end())
             (this->*Athentication[this->Msg.substr(0,4)])(this->Msg);
@@ -35,6 +36,7 @@ bool    Client::ParsAndExec() {
 
     }
     this->Msg = "";
+    this->Cmd.clear();
     return true;
 }
 
