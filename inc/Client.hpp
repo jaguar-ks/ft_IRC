@@ -22,14 +22,15 @@ class Server;
 
 class Client {
 	private:
-		string  SrvPss;     // User Name
-		string  UsrName;    // User Name
-		string  NckName;    // Nick Name
-		string  RlName;     // Real Name
-		string  HstName;    // Host Name or IP address of The ClientMachine
-        string  Msg;        // Client Messag
-		int     ClntFd;     // The file discriptor of the Client Socket
-        bool    Regestred;  // True if Already registred to the server and False if not 
+		string  	                           SrvPss;     // User Name
+		string  	                           UsrName;    // User Name
+		string  	                           NckName;    // Nick Name
+		string  	                           RlName;     // Real Name
+		string  	                           HstName;    // Host Name or IP address of The ClientMachine
+        string  	                           Msg;        // Client Messag
+		int     	                           ClntFd;     // The file discriptor of the Client Socket
+        bool    	                           Regestred;  // True if Already registred to the server and False if not 
+		vector<string>                         Cmd;		   // Command Vector with the first element as the commad and the reset as the argument
 		map<string, bool (Client::*)(string )> Athentication;
 	public:
         /*      [CONSTRUCTERS]      */
