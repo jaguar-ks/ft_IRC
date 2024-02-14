@@ -31,7 +31,7 @@ class Client {
 		int     	                           ClntFd;     // The file discriptor of the Client Socket
         bool    	                           Regestred;  // True if Already registred to the server and False if not 
 		vector<string>                         Cmd;		   // Command Vector with the first element as the commad and the reset as the argument
-		map<string, bool (Client::*)(string )> Athentication;
+		map<string, bool (Client::*)(vector<string>)> Athentication;
 	public:
         /*      [CONSTRUCTERS]      */
         Client() {}
@@ -44,9 +44,9 @@ class Client {
 		const string  &getNckName(void) const {return this->NckName;}
 		string        &getMsg(void) {return this->Msg;}
 		const string  &getHstName(void) const {return this->HstName;}
-		bool		  setNckName(string);
-		bool		  setUsrName(string);
-		bool		  setSrvPss(string);
+		bool		  setNckName(vector<string>);
+		bool		  setUsrName(vector<string>);
+		bool		  setSrvPss(vector<string>);
 		void		  setCmd(string);
         /****************************/
 		bool		  ParsAndExec();
