@@ -1,4 +1,4 @@
-SRC = src/main.cpp src/Server.cpp src/Client.cpp
+SRC = src/main.cpp src/Server.cpp src/Client.cpp src/Channel.cpp src/join.cpp
 
 OBJ_DIR = obj
 
@@ -6,7 +6,7 @@ OBJ = $(patsubst %, $(OBJ_DIR)/%, $(notdir $(SRC:.cpp=.o)))
 
 INC_DIR = inc
 
-FLGS = -Wall -Wextra -Werror #-std=c++98
+FLGS = -Wall -Wextra -Werror -std=c++98
 
 NAME = ircserv
 

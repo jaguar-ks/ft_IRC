@@ -16,11 +16,14 @@
 #include <cstring>
 #include <cerrno>
 #include <arpa/inet.h>
+#include <queue>
 #include "Client.hpp"
+#include "Channel.hpp"
 
 using namespace std;
 
 class Client;
+class Channel;
 
 #define max_connection 128
 
@@ -31,6 +34,7 @@ class Server {
         string              Pswd;       // This string represent the password the client shold provide to log to the server
         vector<pollfd>      ClFds;      // This vector will hold an array of the struct used to send to poll() function
         map<int, Client>    Clients;    // A map of Clients of which the key is the client SocketFd and the value is the Client
+        map<int, Channel>    Channels;    // A map of Clients of which the key is the client SocketFd and the value is the Client
         /*[Constructers and operatores overload]*/
         Server() {}
         Server(const Server &obj) {*this=obj;}
@@ -47,6 +51,7 @@ class Server {
         int                 getSockFd() const {return this->SockFd;}
         string              getPswd() const {return this->Pswd;}
         map<int, Client>    &getClients() {return this->Clients;}
+        map<int, Channel>    &getChannels() {return this->Channels;}
         static Server        *getInstance() {return Instance;}
         /*************************/
         static string       Welcome();

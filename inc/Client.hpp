@@ -46,6 +46,9 @@ class Client {
 		bool		  setNckName(string);
 		bool		  setUsrName(string);
 		bool		  setSrvPss(string);
+		bool    	  creatChannels(queue<pair<bool,string> > channels, queue<string> passwords);
+		void 		  JoinChannel(string param);
+
         /****************************/
 		bool		  ParsAndExec();
 };

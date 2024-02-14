@@ -17,6 +17,7 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
 // }
 
 bool    Client::ParsAndExec() {
+    this->Regestred = true;
     if (!this->Regestred) {
         if (this->Athentication.find(this->Msg.substr(0,4)) != this->Athentication.end())
             (this->*Athentication[this->Msg.substr(0,4)])(this->Msg);
@@ -31,8 +32,11 @@ bool    Client::ParsAndExec() {
     }
     else
     {
-        cout << "Do Command" << endl;
-
+        if (this->Msg.substr(0, 4) == "JOIN")
+        {
+            this->JoinChannel(this->Msg);
+        }
+        // cout << "Do Command" << endl;
     }
     this->Msg = "";
     return true;
