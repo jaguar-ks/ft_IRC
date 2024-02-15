@@ -138,7 +138,7 @@ bool Server::ReplyToClient(Client &Clnt) {
     if (val > 0) {
         string Msg(Buff);
         Clnt.getMsg() += Msg;
-        if (Clnt.getMsg().substr(Clnt.getMsg().size()-2) != "\r\n")
+        if (Clnt.getMsg().size() < 2 || Clnt.getMsg().substr(Clnt.getMsg().size()-2) != "\r\n")
             return true;
         Clnt.getMsg().erase(Clnt.getMsg().size()-2);
         Clnt.getMsg().erase(0, Clnt.getMsg().find_first_not_of(" \t\n\v\f\r"));

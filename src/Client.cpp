@@ -25,21 +25,19 @@ void    Client::setCmd(string line) {
             x++;
         }
     }
-    // if (this->Cmd.back().empty())
-    //     this->Cmd.pop_back();
 }
 
 bool    Client::ParsAndExec() {
     this->setCmd(this->Msg);
-    for (size_t i = 0; i < this->Cmd.size(); i++)
-        cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? "|" : "|\n");
+    // for (size_t i = 0; i < this->Cmd.size(); i++)
+    //     cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? "|" : "|\n");
     if (!this->Regestred) {
         if (this->Athentication.find(this->Cmd[0]) != this->Athentication.end())
             (this->*Athentication[this->Cmd[0]])(this->Cmd);
         else
             cerr << "Invalid Command" << endl;
         this->Regestred = (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty());
-        cout << this->SrvPss << " | " << this->NckName << " | " << this->UsrName << endl;
+        // cout << this->SrvPss << " | " << this->NckName << " | " << this->UsrName << endl;
     }
     else {
         cout << "Do Command" << endl;
@@ -60,7 +58,7 @@ bool    Client::setNckName(vector<string> cmd)
                 if (!isalnum(cmd[1].at(i)) && allowed.find(cmd[1].at(i)) == string::npos)
                     break ;
             if (i != cmd[1].size())
-                msg = ":ircserv 432 " + this->NckName + " :Erroneus nickname\r\n";
+                msg = ":ircserv 432 " + ((!this->NckName.empty()) ? this->NckName : "*") + " :Erroneus nickname\r\n";
             else {
                 map<int, Client> Clnts = Server::getInstance()->getClients();
                 map<int, Client>::iterator it = Clnts.begin();
@@ -68,7 +66,7 @@ bool    Client::setNckName(vector<string> cmd)
                     if (it->second.NckName == cmd[1])
                         break ;
                 if (it != Clnts.end())
-                    msg = ":ircserv 433 " + this->NckName + " :Nickname is already in use\r\n";
+                    msg = ":ircserv 433 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " :Nickname is already in use\r\n";
                 else {
                     this->NckName = cmd[1];
                     return true;
@@ -76,10 +74,10 @@ bool    Client::setNckName(vector<string> cmd)
             }
         }
         else
-            msg = ":ircserv 432 " + this->NckName + " :Erroneus nickname\r\n";
+            msg = ":ircserv 432 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " :Erroneus nickname\r\n";
     }
     else
-        msg = ":ircserv 431 " + this->NckName + " :No nickname given\r\n";
+        msg = ":ircserv 431 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " :No nickname given\r\n";
     send(this->ClntFd, msg.c_str(), msg.size(), 0);
     return (false);
 }
@@ -94,10 +92,10 @@ bool		  Client::setUsrName(vector<string> cmd)
             return true;
         }
         else
-            msg = ":ircserv 462 " + this->NckName + " :You may not reregister\r\n";
+            msg = ":ircserv 462 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " :You may not reregister\r\n";
     }
     else
-        msg = ":ircserv 461 " + this->NckName + " " + cmd[0] + " :Not enough parameters\r\n";
+        msg = ":ircserv 461 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " " + cmd[0] + " :Not enough parameters\r\n";
     send(this->ClntFd, msg.c_str(), msg.size(), 0);
     return (false);
 }
@@ -107,16 +105,16 @@ bool		  Client::setSrvPss(vector<string> cmd)
     string msg;
     if (cmd.size() == 2) {
         if (this->Regestred)
-            msg = ":ircserv 462 " + this->NckName + " :You may not reregister\r\n";
+            msg = ":ircserv 462 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " :You may not reregister\r\n";
         else if(Server::getInstance()->getPswd() == cmd[1]) {
             this->SrvPss = cmd[1];
             return true;
         }
         else
-            msg = ":ircserv 464 " + this->NckName + " :Password incorrect\r\n";
+            msg = ":ircserv 464 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " :Password incorrect\r\n";
     }
     else
-        msg = ":ircserv 461 " + this->NckName + " " + cmd[0] + " :Not enough parameters\r\n";
+        msg = ":ircserv 461 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " " + cmd[0] + " :Not enough parameters\r\n";
     send(this->ClntFd, msg.c_str(), msg.size(), 0);
     return (false);
 }
