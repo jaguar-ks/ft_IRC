@@ -31,7 +31,7 @@ class Client {
 		int     	                           ClntFd;     // The file discriptor of the Client Socket
         bool    	                           Regestred;  // True if Already registred to the server and False if not 
 		vector<string>                         Cmd;		   // Command Vector with the first element as the commad and the reset as the argument
-		map<string, bool (Client::*)(vector<string>)> Athentication;
+		map<string, bool (Client::*)(vector<string>)> DoCmd;
 	public:
         /*      [CONSTRUCTERS]      */
         Client() {}

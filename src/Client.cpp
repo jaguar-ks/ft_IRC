@@ -2,9 +2,9 @@
 
 // Default Constructor
 Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false) {
-    this->Athentication["PASS"] = static_cast<bool (Client::*)(vector<string>)>(&Client::setSrvPss);
-    this->Athentication["NICK"] = static_cast<bool (Client::*)(vector<string>)>(&Client::setNckName);
-    this->Athentication["USER"] = static_cast<bool (Client::*)(vector<string>)>(&Client::setUsrName);
+    this->DoCmd["PASS"] = static_cast<bool (Client::*)(vector<string>)>(&Client::setSrvPss);
+    this->DoCmd["NICK"] = static_cast<bool (Client::*)(vector<string>)>(&Client::setNckName);
+    this->DoCmd["USER"] = static_cast<bool (Client::*)(vector<string>)>(&Client::setUsrName);
     this->HstName = inet_ntoa(*ClntAddr);
 }
 
@@ -28,23 +28,22 @@ void    Client::setCmd(string line) {
 }
 
 bool    Client::ParsAndExec() {
+    bool rt;
     this->setCmd(this->Msg);
     // for (size_t i = 0; i < this->Cmd.size(); i++)
     //     cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? "|" : "|\n");
-    if (!this->Regestred) {
-        if (this->Athentication.find(this->Cmd[0]) != this->Athentication.end())
-            (this->*Athentication[this->Cmd[0]])(this->Cmd);
-        else
-            cerr << "Invalid Command" << endl;
-        this->Regestred = (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty());
-        // cout << this->SrvPss << " | " << this->NckName << " | " << this->UsrName << endl;
-    }
+    // if (!this->Regestred) {
+    this->Regestred = (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty());
+    if (this->DoCmd.find(this->Cmd[0]) != this->DoCmd.end())
+        rt = (this->*DoCmd[this->Cmd[0]])(this->Cmd);
     else {
-        cout << "Do Command" << endl;
+        string msg = ":ircserv 421 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " " + this->Cmd[0] + " :Unknown command\r\n";
+        send(this->ClntFd, msg.c_str(), msg.size(), 0);
+        rt = false;
     }
     this->Msg = "";
     this->Cmd.clear();
-    return true;
+    return rt;
 }
 
 bool    Client::setNckName(vector<string> cmd)
@@ -58,7 +57,7 @@ bool    Client::setNckName(vector<string> cmd)
                 if (!isalnum(cmd[1].at(i)) && allowed.find(cmd[1].at(i)) == string::npos)
                     break ;
             if (i != cmd[1].size())
-                msg = ":ircserv 432 " + ((!this->NckName.empty()) ? this->NckName : "*") + " :Erroneus nickname\r\n";
+                msg = ":ircserv 432 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " :Erroneus nickname\r\n";
             else {
                 map<int, Client> Clnts = Server::getInstance()->getClients();
                 map<int, Client>::iterator it = Clnts.begin();
