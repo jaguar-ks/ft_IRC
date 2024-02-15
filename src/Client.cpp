@@ -1,6 +1,12 @@
 #include"Client.hpp"
 
 // Default Constructor
+/**
+ * @brief Constructor for the Client class.
+ * 
+ * @param ClntFd The file descriptor of the client.
+ * @param ClntAddr The address of the client.
+ */
 Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false) {
     this->DoCmd["PASS"] = static_cast<bool (Client::*)(vector<string>)>(&Client::setSrvPss);
     this->DoCmd["NICK"] = static_cast<bool (Client::*)(vector<string>)>(&Client::setNckName);
@@ -8,6 +14,15 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
     this->HstName = inet_ntoa(*ClntAddr);
 }
 
+/**
+ * @brief Sets the command for the client.
+ * 
+ * This function parses the input line and sets the command for the client.
+ * The input line is split into individual command arguments based on spaces.
+ * If a colon (:) is encountered, the remaining part of the line is considered as a single argument.
+ * 
+ * @param line The input line containing the command.
+ */
 void    Client::setCmd(string line) {
     string tmp;
     size_t x = 0;
@@ -27,12 +42,24 @@ void    Client::setCmd(string line) {
     }
 }
 
+/**
+ * @brief Parses and executes the client command.
+ * 
+ * This function parses the command received from the client and executes it accordingly.
+ * It checks if the client is registered and sends a welcome message if not.
+ * It then checks if the command is valid and calls the corresponding function to execute it.
+ * If the command is not recognized, it sends an error message to the client.
+ * 
+ * @return true if the command was executed successfully, false otherwise.
+ */
 bool    Client::ParsAndExec() {
     bool rt;
     this->setCmd(this->Msg);
     // for (size_t i = 0; i < this->Cmd.size(); i++)
     //     cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? "|" : "|\n");
-    // if (!this->Regestred) {
+    if (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty())
+        if (!this->Regestred)
+            cout << "Sending Welcome Message To Client" << endl;
     this->Regestred = (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty());
     if (this->DoCmd.find(this->Cmd[0]) != this->DoCmd.end())
         rt = (this->*DoCmd[this->Cmd[0]])(this->Cmd);
@@ -46,6 +73,19 @@ bool    Client::ParsAndExec() {
     return rt;
 }
 
+/**
+ * @brief Sets the nickname for the client.
+ * 
+ * This function sets the nickname for the client based on the provided command.
+ * The nickname must meet certain criteria, such as starting with a letter or underscore,
+ * and only containing alphanumeric characters, square brackets, curly brackets, vertical bars, backslashes, or underscores.
+ * 
+ * If the nickname is valid and not already in use by another client, it is set as the client's nickname.
+ * Otherwise, an error message is sent to the client.
+ * 
+ * @param cmd The command containing the nickname to be set.
+ * @return True if the nickname was successfully set, false otherwise.
+ */
 bool    Client::setNckName(vector<string> cmd)
 {
     string msg;
@@ -81,6 +121,16 @@ bool    Client::setNckName(vector<string> cmd)
     return (false);
 }
 
+/**
+ * @brief Sets the username and real name of the client.
+ * 
+ * This function is responsible for setting the username and real name of the client based on the provided command.
+ * If the command has the correct number of parameters and the client is not already registered, the username and real name are set.
+ * Otherwise, an error message is sent to the client.
+ * 
+ * @param cmd The command containing the username and real name.
+ * @return True if the username and real name are set successfully, false otherwise.
+ */
 bool		  Client::setUsrName(vector<string> cmd)
 {
     string msg;
@@ -99,6 +149,19 @@ bool		  Client::setUsrName(vector<string> cmd)
     return (false);
 }
 
+/**
+ * @brief Sets the server password for the client.
+ * 
+ * This function sets the server password for the client based on the provided command.
+ * If the command has two elements and the client is not already registered, it checks if the provided password matches the server's password.
+ * If the password is correct, it sets the server password for the client and returns true.
+ * If the client is already registered, it sends an error message indicating that the client may not reregister.
+ * If the password is incorrect, it sends an error message indicating that the password is incorrect.
+ * If the command does not have enough parameters, it sends an error message indicating that there are not enough parameters.
+ * 
+ * @param cmd The command containing the server password.
+ * @return True if the server password is set successfully, false otherwise.
+ */
 bool		  Client::setSrvPss(vector<string> cmd)
 {
     string msg;
