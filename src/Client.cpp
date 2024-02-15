@@ -57,16 +57,17 @@ bool    Client::ParsAndExec() {
     this->setCmd(this->Msg);
     // for (size_t i = 0; i < this->Cmd.size(); i++)
     //     cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? "|" : "|\n");
-    if (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty())
-        if (!this->Regestred)
-            cout << "Sending Welcome Message To Client" << endl;
-    this->Regestred = (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty());
     if (this->DoCmd.find(this->Cmd[0]) != this->DoCmd.end())
         rt = (this->*DoCmd[this->Cmd[0]])(this->Cmd);
     else {
         string msg = ":ircserv 421 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " " + this->Cmd[0] + " :Unknown command\r\n";
         send(this->ClntFd, msg.c_str(), msg.size(), 0);
         rt = false;
+    }
+    if (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty()) {
+        if (!this->Regestred)
+            cout << "Sending Welcome Message To Client" << endl;
+        this->Regestred = true;
     }
     this->Msg = "";
     this->Cmd.clear();
