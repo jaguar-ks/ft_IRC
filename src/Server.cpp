@@ -135,7 +135,7 @@ bool Server::ReplyToClient(Client &Clnt) {
     char    Buff[3000];
     memset(Buff, 0, 3000);
     int val = recv(Clnt.getClntFd(), Buff, 3000, 0);
-    if (val > 0) {
+    if (val > 0 && strlen(Buff)) {
         string Msg(Buff);
         Clnt.getMsg() += Msg;
         if (Clnt.getMsg().size() < 2 || Clnt.getMsg().substr(Clnt.getMsg().size()-2) != "\r\n")
