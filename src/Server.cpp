@@ -2,6 +2,13 @@
 
 Server *Server::Instance = NULL;
 
+std::string	localTime(time_t now)
+{
+	std::string t = ctime(&now);
+	t.erase(t.length() - 1);
+	return (t);
+}
+
 bool isdigit_b(int c) {return isdigit(c);}
 
 /*
@@ -66,6 +73,7 @@ Server *Server::InstanceServer(string &port, string &psw) {
         Instance->ClFds.push_back(pollfd());
         Instance->ClFds.back().fd = Instance->SockFd;
         Instance->ClFds.back().events = POLLIN;
+		Instance->LocalTime = localTime(time(0));
     }
     return Instance;
 }
@@ -119,6 +127,9 @@ bool Server::JoinServer() {
         return false;
     }
     this->Clients[ClntFd] = Client(ClntFd, &ClntAddr.sin_addr);
+	cout << "[ info ] Client[" << inet_ntoa(ClntAddr.sin_addr) << "] with id: #" 
+	<< ClntFd << " Establishing connection to server..."<< endl;
+	RegistMsgReply(this->Clients[ClntFd]);
     this->ClFds.push_back(pollfd());
     this->ClFds.back().fd = ClntFd;
     this->ClFds.back().events = POLLIN;
@@ -154,4 +165,39 @@ bool Server::ReplyToClient(Client &Clnt) {
     close(Clnt.getClntFd());
     this->Clients.erase(Clnt.getClntFd());
     return false;
+}
+
+void	Server::BroadCastMsg( const Client& reciever, const stringstream& msg ) const
+{
+	short	nByte = send(reciever.getClntFd(), msg.str().c_str(), msg.str().size(), 0);
+	if (nByte == -1)
+		cerr << RED << "[ Error ] BroadCastMsg Function " << strerror(errno) << C_CLS << endl;
+	
+}
+void	Server::RegistMsgReply(const Client& u) const
+{
+	stringstream	wMsg;
+		// RPL_WELCOME
+	const string&	nickName = u.getNckName();
+	wMsg << GRN << ":" << "<servername> 001 " << nickName 
+	<< ":Welcome to the Internet Relay Network " << C_CLS << nickName << "\r\n";
+	this->BroadCastMsg(u, wMsg);
+	wMsg.str("");
+		// RPL_YOURHOST
+	wMsg << GRN  << ":" << "<servername> 002 " << nickName 
+	<< ":Your host is <servername>, running version <version> " << C_CLS << "\r\n";
+	this->BroadCastMsg(u, wMsg);
+	wMsg.str("");
+		// RPL_CREATED
+	wMsg << GRN << ":" << "<servername> 003 " << nickName 
+	<< ":This <servername> server was created " << Server::LocalTime << C_CLS << "\r\n";
+	this->BroadCastMsg(u, wMsg);
+	wMsg.str("");
+		// RPL_MYINFO
+	// <available umodes>: List of available user modes.
+	// <available cmodes>: List of available channel modes.
+	wMsg << GRN << ":" << "server 004 " << nickName 
+	<< " <servername>" << " <version> " << "<available umodes>" 
+	<< " <available cmodes>" << C_CLS << "\r\n";
+	this->BroadCastMsg(u, wMsg);
 }

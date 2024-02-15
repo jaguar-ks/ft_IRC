@@ -1,7 +1,7 @@
 #include "Server.hpp"
 
 bool interpted = false;
-
+using std::cout; 
 void hundl(int) {interpted = true;}
 
 // void f(void){system("leaks ircserv");}
@@ -20,5 +20,6 @@ int main(int ac, char **av) {
     else {
         cerr << "Invalide Arguments : Usage : ./ircserv <port> <password>" << endl;
         return 1;
+		
     }
 }
