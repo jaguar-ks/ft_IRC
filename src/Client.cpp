@@ -12,6 +12,7 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
     this->DoCmd["NICK"] = static_cast<bool (Client::*)(vector<string>)>(&Client::setNckName);
     this->DoCmd["USER"] = static_cast<bool (Client::*)(vector<string>)>(&Client::setUsrName);
     this->DoCmd["JOIN"] = static_cast<bool (Client::*)(vector<string>)>(&Client::joinCommand);
+    this->DoCmd["PRIVMSG"] = static_cast<bool (Client::*)(vector<string>)>(&Client::SendPrvMsg);
     this->HstName = inet_ntoa(*ClntAddr);
 }
 
@@ -56,8 +57,8 @@ void    Client::setCmd(string line) {
 bool    Client::ParsAndExec() {
     bool rt;
     this->setCmd(this->Msg);
-    // for (size_t i = 0; i < this->Cmd.size(); i++)
-    //     cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? "|" : "|\n");
+    for (size_t i = 0; i < this->Cmd.size(); i++)
+        cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? " | " : "\n");
     if (this->DoCmd.find(this->Cmd[0]) != this->DoCmd.end())
         rt = (this->*DoCmd[this->Cmd[0]])(this->Cmd);
     else {
@@ -184,7 +185,74 @@ bool		  Client::setSrvPss(vector<string> cmd)
 }
 // REPLYFORMAT [":<ServerName> <StatusCode> <CLientNick> :<Msg>"]
 
+vector<string> getTargets(string str) {
+    vector<string> trg;
+    string tmp;
+    size_t x = 0;
+    trg.push_back(string());
+    for (size_t i = 0; i < str.size(); i++){
+        if (str.at(i) != ',')
+            trg[x] += str.at(i);
+        else {
+            trg.push_back(string());
+            x++;
+        }
+    }
+    return trg;
+}
 
+bool		  Client::SendPrvMsg(vector<string> cmd) {
+    string         msg;
+    bool           rt = true;
+    if (cmd.size() == 3) {
+        vector<string> targets = getTargets(cmd[1]);
+        for (size_t i = 0; i < targets.size(); i++) {
+            if (*targets[i].begin() == '#') {
+                if (Server::getInstance()->getChannels().find(targets[i]) != Server::getInstance()->getChannels().end()) {
+                    if (find(this->Chnls.begin(), this->Chnls.end(), targets[i]) != this->Chnls.end()) {
+                        msg = ":" + this->NckName + "!~" + this->RlName
+                            + "@" + this->HstName + " " + cmd[0] + " "
+                            + targets[i] + " :" + cmd[2] + "\r\n";
+                        vector<Client> chnlMbrs = Server::getInstance()->getChannels()[targets[i]].getMembers();
+                        for (size_t j = 0; j < chnlMbrs.size(); j++)
+                            if (chnlMbrs[j].ClntFd != this->ClntFd)
+                                send(chnlMbrs[j].ClntFd, msg.c_str(), msg.size(), 0);
+                    }
+                    else {
+                        msg = ":ircserv 404 " +  this->NckName + " " + targets[i] + " :Cannot send to channel\r\n";
+                        send(this->ClntFd, msg.c_str(), msg.size(), 0);
+                    }
+                }
+                else {
+                    msg = ":ircserv 403 " +  this->NckName + " " + targets[i] + " :No such channel\r\n";
+                    send(this->ClntFd, msg.c_str(), msg.size(), 0);
+                }
+            }
+            else {
+                map<int, Client>::iterator it = Server::getInstance()->getClients().begin();
+                for (; it != Server::getInstance()->getClients().end(); it++)
+                    if (it->second.NckName == targets[i])
+                        break ;
+                if (it != Server::getInstance()->getClients().end()) {
+                    msg = ":" + this->NckName + "!~" + this->RlName
+                            + "@" + this->HstName + " " + cmd[0] + " "
+                            + targets[i] + " :" + cmd[2] + "\r\n";
+                    send(it->first, msg.c_str(), msg.size(), 0);
+                }
+                else {
+                    msg = ":ircserv 401 " + this->NckName + " " + targets[i] + " :No such nick\r\n";
+                    send(this->ClntFd, msg.c_str(), msg.size(), 0);
+                }
+            }
+        }
+    }
+    else if (cmd.size() <= 2) {
+        msg = ((cmd.size() == 2)?":ircserv 412 " + this->NckName + " :No text to send\r\n" : ":ircserv 411 " + this->NckName + " :No recipient given\r\n");
+        send(this->ClntFd, msg.c_str(), msg.size(), 0);
+        rt = false;
+    }
+    return rt;
+}
 // bool		  Client::joinCommand(vector<string> cmd)
 // {
 //     for (vector<string>::iterator it = cmd.begin(); it != cmd.end(); it++)
