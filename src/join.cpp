@@ -7,7 +7,7 @@ bool is_channel(string channel)
     if (channel.size() < 2 || channel.size() > 51 || (channel[0] != '#' && channel[0] != '&' && channel[0] != '+'))
         return (false);
     channel.erase(0, 1);
-    for (int i = 0; i < channel.size(); i++)
+    for (size_t i = 0; i < channel.size(); i++)
     {
         if (channel[i] == '\0' || channel[i] == '\a' || channel[i] == '\r' || channel[i] == '\n' || channel[i] == ' ' || channel[i] == ',' || channel[i] == ':')
             return (false);
@@ -89,7 +89,7 @@ bool    Client::joinCommand(vector<string> join)
                 cerr << "477  JOIN :Already a member of channel" << endl;
             }
 
-            if (search.second.isInviteOnly())
+            if (search->second.isInviteOnly())
             {
                 if (!search->second.isInvited(*this))
                 {

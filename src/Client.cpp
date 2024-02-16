@@ -185,9 +185,9 @@ bool		  Client::setSrvPss(vector<string> cmd)
 // REPLYFORMAT [":<ServerName> <StatusCode> <CLientNick> :<Msg>"]
 
 
-bool		  Client::joinCommand(vector<string> cmd)
-{
-    for (vector<string>::iterator it = cmd.begin(); it != cmd.end(); it++)
-        cout << "\'"<<*it <<  "\'"<<endl;
-    return (true);
-}
+// bool		  Client::joinCommand(vector<string> cmd)
+// {
+//     for (vector<string>::iterator it = cmd.begin(); it != cmd.end(); it++)
+//         cout << "\'"<<*it <<  "\'"<<endl;
+//     return (true);
+// }

@@ -65,7 +65,7 @@ void    Channel::removeMember(const Client &member)
     {
         for (vector <Client >::iterator it = this->members.begin(); it != this->members.end(); it++)
         {
-            if (*it == member)
+            if (it->getClntFd() == member.getClntFd())
             {
                 this->members.erase(it);
                 break;
@@ -83,7 +83,7 @@ void    Channel::removeOperator(const Client &op)
     {
         for (vector <Client >::iterator it = this->operators.begin(); it != this->operators.end(); it++)
         {
-            if (*it == op)
+            if (it->getClntFd() == op.getClntFd())
             {
                 this->operators.erase(it);
                 break;
@@ -102,7 +102,7 @@ void    Channel::removeInvited(const Client &client)
     {
         for (vector <Client >::iterator it = this->invited.begin(); it != this->invited.end(); it++)
         {
-            if (*it == client)
+            if (it->getClntFd() == client.getClntFd())
             {
                 this->invited.erase(it);
                 break;
@@ -127,22 +127,25 @@ vector <Client> Channel::getOperators() const
 
 bool    Channel::isMember(const Client &member) const
 {
-    if (find(this->members.begin(), this->members.end(), member) != this->members.end())
-        return (true);
+    for (vector<Client>::const_iterator it = this->members.begin(); it != this->members.end(); it++)
+        if (it ->getClntFd() == member.getClntFd())
+            return true;
     return (false);
 }
 
 bool    Channel::isOperator(const Client & admin) const
 {
-    if (find(this->operators.begin(), this->operators.end(), admin) != this->operators.end())
-        return (true);
+    for (vector<Client>::const_iterator it = this->operators.begin(); it != this->operators.end(); it++)
+        if (it ->getClntFd() == admin.getClntFd())
+            return true;
     return (false);
 }
 
 bool    Channel::isInvited(const Client &client) const
 {
-    if (find(this->invited.begin(), this->invited.end(), client) != this->invited.end())
-        return (true);
+    for (vector<Client>::const_iterator it = this->invited.begin(); it != this->invited.end(); it++)
+        if (it ->getClntFd() == client.getClntFd())
+            return true;
     return (false);
 }
 
@@ -249,12 +252,12 @@ void    Channel::unsetPassword()
     this->privelege.password = false;
 }
 
-void    Channel::unsetIviteOnly()
+void    Channel::unsetInviteOnly()
 {
     this->privelege.invitOnly = false;
 }
 
-bool    Channel::isIviteOnly() const
+bool    Channel::isInviteOnly() const
 {
     return (this->privelege.invitOnly);
 }

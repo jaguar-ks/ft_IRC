@@ -57,9 +57,9 @@ class Channel
         void    unsetLimit();
         void    unsetTopic();
         void    unsetPassword();
-        void    unsetIviteOnly();
+        void    unsetInviteOnly();
 
-        bool    isIviteOnly() const;
+        bool    isInviteOnly() const;
         bool    isLimited() const;
         bool    isLocked() const;
         bool    isTopic() const;
