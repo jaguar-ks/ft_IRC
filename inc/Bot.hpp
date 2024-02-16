@@ -2,7 +2,6 @@
 #ifndef BOR_HPP
 # define BOT_HPP
 
-#include <map>
 #include "Client.hpp"
 #include "Channel.hpp"
 class Channel;
@@ -29,7 +28,7 @@ class Bot
 		int				getSocketFd() const;
 		int				getBotType() const;
 		virtual void		joinChannel( const Channel& ) = 0;
-		virtual void		connectToServer( const Server& ) = 0;
+		virtual void		connectToServer( Server* ) = 0;
 		virtual ~Bot();
 };
 

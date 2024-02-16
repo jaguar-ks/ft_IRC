@@ -19,17 +19,17 @@ bool isdigit_b(int c) {return isdigit(c);}
     the problem  
 */
 void Server::SetSockFd(string &port) {
-    struct addrinfo *ptr, *tmp, hnt;
+    struct addrinfo *tmp, hnt;
     memset(&hnt, 0, sizeof(hnt));
     hnt.ai_family = AF_INET;
     hnt.ai_protocol = IPPROTO_TCP;
     hnt.ai_socktype = SOCK_STREAM;
-    int status = getaddrinfo("0.0.0.0", port.c_str(), &hnt, &ptr), opt_val = 1;
+    int status = getaddrinfo("0.0.0.0", port.c_str(), &hnt, &servinfo), opt_val = 1;
     if (status) {
         cerr << "Getting Address Info : " << gai_strerror(status) << endl;
         exit(1);
     }
-    for (tmp = ptr; tmp; tmp = tmp->ai_next) {
+    for (tmp = servinfo; tmp; tmp = tmp->ai_next) {
         this->SockFd = socket(tmp->ai_family, tmp->ai_socktype, tmp->ai_protocol);
         if (this->SockFd < 0)
             continue;
@@ -40,7 +40,6 @@ void Server::SetSockFd(string &port) {
         }
         break ;
     }
-    freeaddrinfo(ptr);
     if (!tmp) {
         cerr << "Binding The Socket : " << strerror(errno) << endl;
         close(this->SockFd);
@@ -98,6 +97,7 @@ string Server::Welcome() {
     for to read from as behaving
     according to which file
 */
+
 void Server::launchServer() {
     int count = poll(&this->ClFds[0], this->ClFds.size(), 0);
     if (count < 0) {

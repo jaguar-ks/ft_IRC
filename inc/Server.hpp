@@ -33,6 +33,7 @@ class Client;
 class Server {
     private:
         int                 SockFd;     // File discriptor of the server socket
+		addrinfo			*servinfo;     // The struct that will hold the server's address information
         static Server       *Instance;  // This pointer will make the class have only one inctance
         string              Pswd;       // This string represent the password the client shold provide to log to the server
         string				LocalTime;	// Stors the created server's time
@@ -44,7 +45,7 @@ class Server {
         Server &operator=(const Server &obj) {(void)obj;return *this;}
         /****************************************/
     public:
-        ~Server() {delete Instance;}
+        ~Server() {delete Instance; close(this->SockFd); freeaddrinfo(servinfo);}
         void                launchServer();
         bool                JoinServer();
         bool                ReplyToClient(Client &Clnt);
@@ -58,6 +59,7 @@ class Server {
         string              getPswd() const {return this->Pswd;}
         map<int, Client>    &getClients() {return this->Clients;}
         static Server        *getInstance() {return Instance;}
+		addrinfo			*getServInfo() {return this->servinfo;}
         /*************************/
         static string       Welcome();
 };
