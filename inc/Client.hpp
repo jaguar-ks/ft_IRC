@@ -49,6 +49,7 @@ class Client {
         /****************************/
         /*         [SETTERS]        */
 		bool		   setNckName(vector<string>);
+		bool		   joinCommand(vector<string>);
 		bool		   setUsrName(vector<string>);
 		bool		   setSrvPss(vector<string>);
 		void		   setCmd(string);

@@ -7,25 +7,15 @@ Channel::~Channel()
 /**
  * @brief Constructs a Channel object.
  * 
- * @param client The client who created the channel.
+ * @param client The client object to be added as an operator and member of the channel.
  * @param name The name of the channel.
- * @param password The password for the channel (empty string if no password).
- * @param inviteOnly Whether the channel is invite-only.
  */
-Channel::Channel(Client &client, string name, string password, bool inviteOnly)
-: name(name), password(password)
+Channel::Channel(Client &client, string name)
+: name(name)
 {
     memset(&this->privelege, 0, sizeof(this->privelege));
-
-    if (inviteOnly)
-    {
-        this->privelege.invitOnly = true;
-    }
-    if (password != "")
-    {
-        this->privelege.password = true;
-    }
     this->operators.push_back(client);
+    this->members.push_back(client);
 }
 
 const std::string &Channel::getName() const
@@ -33,7 +23,7 @@ const std::string &Channel::getName() const
     return (this->name);
 }
 
-void   Channel::addMember(Client &member)
+void   Channel::addMember(const Client &member)
 {
     try
     {
@@ -45,7 +35,7 @@ void   Channel::addMember(Client &member)
     }
 }
 
-void    Channel::addOperator(Client &op)
+void    Channel::addOperator(const Client &op)
 {
     try
     {
@@ -58,7 +48,7 @@ void    Channel::addOperator(Client &op)
 
 }
 
-void    Channel::invite(Client &client)
+void    Channel::invite(const Client &client)
 {
     try
     {
@@ -69,11 +59,11 @@ void    Channel::invite(Client &client)
         std::cerr << e.what() << '\n';
     }
 }
-void    Channel::removeMember(Client &member)
+void    Channel::removeMember(const Client &member)
 {
     try
     {
-        for (vector <Client &>::iterator it = this->members.begin(); it != this->members.end(); it++)
+        for (vector <Client >::iterator it = this->members.begin(); it != this->members.end(); it++)
         {
             if (*it == member)
             {
@@ -87,11 +77,11 @@ void    Channel::removeMember(Client &member)
         std::cerr << e.what() << '\n';
     }
 }
-void    Channel::removeOperator(Client &op)
+void    Channel::removeOperator(const Client &op)
 {
     try
     {
-        for (vector <Client &>::iterator it = this->operators.begin(); it != this->operators.end(); it++)
+        for (vector <Client >::iterator it = this->operators.begin(); it != this->operators.end(); it++)
         {
             if (*it == op)
             {
@@ -106,11 +96,11 @@ void    Channel::removeOperator(Client &op)
     }
 }
 
-void    Channel::removeInvited(Client &client)
+void    Channel::removeInvited(const Client &client)
 {
     try
     {
-        for (vector <Client &>::iterator it = this->invited.begin(); it != this->invited.end(); it++)
+        for (vector <Client >::iterator it = this->invited.begin(); it != this->invited.end(); it++)
         {
             if (*it == client)
             {
@@ -125,38 +115,38 @@ void    Channel::removeInvited(Client &client)
     }
 }
 
-vector <Client&> Channel::getMembers() const
+vector <Client> Channel::getMembers() const
 {
     return (this->members);
 }
 
-vector <Client&> Channel::getOperators() const
+vector <Client> Channel::getOperators() const
 {
     return (this->operators);
 }
 
-bool    Channel::isMember(Client &member) const
+bool    Channel::isMember(const Client &member) const
 {
     if (find(this->members.begin(), this->members.end(), member) != this->members.end())
         return (true);
     return (false);
 }
 
-bool    Channel::isOperator(Client & admin) const
+bool    Channel::isOperator(const Client & admin) const
 {
     if (find(this->operators.begin(), this->operators.end(), admin) != this->operators.end())
         return (true);
     return (false);
 }
 
-bool    Channel::isInvited(Client &client) const
+bool    Channel::isInvited(const Client &client) const
 {
     if (find(this->invited.begin(), this->invited.end(), client) != this->invited.end())
         return (true);
     return (false);
 }
 
-void    Channel::setOperator(Client &client)
+void    Channel::setOperator(const Client &client)
 {
     try
     {
@@ -169,7 +159,7 @@ void    Channel::setOperator(Client &client)
     }
 }
 
-void    Channel::unsetOperator(Client &client)
+void    Channel::unsetOperator(const Client &client)
 {
     try
     {
@@ -182,7 +172,7 @@ void    Channel::unsetOperator(Client &client)
     }
 }
 
-void    Channel::kickUser(Client &admin, Client &user)
+void    Channel::kickUser(const Client &admin, const Client &user)
 {
     try
     {
@@ -274,7 +264,7 @@ bool    Channel::isLimited() const
     return (this->privelege.limit);
 }
 
-bool    Channel::isPassword() const
+bool    Channel::isLocked() const
 {
     return (this->privelege.password);
 }
