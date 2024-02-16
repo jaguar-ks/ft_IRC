@@ -19,12 +19,12 @@ class Bot
 	private:
 		std::string	_name;
 		int 		_fd;
-		int			Type;
+		BotType			Type;
 		Bot( const Bot& );
 		Bot& operator=( const Bot& );
 		Bot();
 	public:
-		Bot(std::string name, int fd, int type);
+		Bot(std::string name, int fd, BotType type);
 		std::string		getName() const;
 		int				getSocketFd() const;
 		int				getBotType() const;

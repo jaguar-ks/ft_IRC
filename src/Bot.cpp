@@ -2,7 +2,7 @@
 
 Bot::Bot() {}
 
-Bot::Bot(std::string name, int fd, int type) : _name(name), _fd(fd), Type(type) {}
+Bot::Bot(std::string name, int fd, BotType type) : _name(name), _fd(fd), Type(type) {}
 
 std::string		Bot::getName() const { return this->_name; }
 
