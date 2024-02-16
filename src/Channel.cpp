@@ -59,31 +59,31 @@ void    Channel::invite(const Client &client)
         std::cerr << e.what() << '\n';
     }
 }
-// void    Channel::removeMember(Client &member)
-// {
-//     try
-//     {
-//         for (vector <Client >::iterator it = this->members.begin(); it != this->members.end(); it++)
-//         {
-//             if (*it == member)
-//             {
-//                 this->members.erase(it);
-//                 break;
-//             }
-//         }
-//     }
-//     catch(const std::exception& e)
-//     {
-//         std::cerr << e.what() << '\n';
-//     }
-// }
-void    Channel::removeOperator(Client &op)
+void    Channel::removeMember(const Client &member)
+{
+    try
+    {
+        for (vector <Client >::iterator it = this->members.begin(); it != this->members.end(); it++)
+        {
+            if (*it == member)
+            {
+                this->members.erase(it);
+                break;
+            }
+        }
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+}
+void    Channel::removeOperator(const Client &op)
 {
     try
     {
         for (vector<Client>::iterator it = this->operators.begin(); it != this->operators.end(); it++)
         {
-            if (*it == &op)
+            if (*it == op)
             {
                 this->operators.erase(it);
                 break;
@@ -96,7 +96,7 @@ void    Channel::removeOperator(Client &op)
     }
 }
 
-void    Channel::removeInvited(Client &client)
+void    Channel::removeInvited(const Client &client)
 {
     try
     {

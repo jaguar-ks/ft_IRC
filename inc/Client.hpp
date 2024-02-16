@@ -36,6 +36,7 @@ class Client {
         /*      [CONSTRUCTERS]      */
         Client() {}
         Client(int ClntFd, in_addr *ClntAddr);
+		bool operator==(const Client& other) const;
         /****************************/
         /*         [GETTERS]        */
         bool          alreadyIn(void) const {return this->Regestred;}

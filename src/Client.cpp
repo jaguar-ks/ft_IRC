@@ -8,6 +8,10 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
     this->HstName = inet_ntoa(*ClntAddr);
 }
 
+bool Client::operator==(const Client& other) const {
+        return ClntFd == other.ClntFd && NckName == other.NckName;
+}
+
 void    Client::setCmd(string line) {
     string tmp;
     size_t x = 0;

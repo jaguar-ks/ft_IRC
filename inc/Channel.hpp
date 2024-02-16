@@ -33,9 +33,9 @@ class Channel
         void    addOperator(const Client &);
         void    invite(const Client &);
 
-        // void    removeMember(Client &);
-        void    removeOperator(Client &);
-        void    removeInvited(Client &);
+        void    removeMember(const Client &);
+        void    removeOperator(const Client &);
+        void    removeInvited(const Client &);
 
         vector <Client> getMembers() const;
         vector <Client> getOperators() const;
