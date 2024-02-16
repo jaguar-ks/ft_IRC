@@ -1,12 +1,7 @@
 #pragma once
-
-# include <iostream>
-# include <cstring>
-# include <unistd.h>
-# include <sys/socket.h>
-# include <arpa/inet.h>
-# include "Client.hpp"
-
+#ifndef CHANNEL_HPP
+#define CHANNEL_HPP
+# include "Server.hpp"
 class Client;
 
 using namespace std;
@@ -25,34 +20,34 @@ class Channel
     string              name;
     string              password;
     string              topic;
-    vector <Client&>    members;
-    vector <Client&>    operators;
-    vector <Client&>    invited;
+    vector <Client>    members;
+    vector <Client>    operators;
+    vector <Client>    invited;
     Privelege           privelege;
     
     public :
     Channel(){};
         void    autoAssignAdmin();
 
-        void    addMember(Client &);
-        void    addOperator(Client &);
-        void    invite(Client &);
+        void    addMember(const Client &);
+        void    addOperator(const Client &);
+        void    invite(const Client &);
 
-        void    removeMember(Client &);
-        void    removeOperator(Client &);
-        void    removeInvited(Client &);
+        void    removeMember(const Client &);
+        void    removeOperator(const Client &);
+        void    removeInvited(const Client &);
 
-        vector <Client&> getMembers() const;
-        vector <Client&> getOperators() const;
+        vector <Client> getMembers() const;
+        vector <Client> getOperators() const;
 
-        bool    isMember(Client &) const;
-        bool    isOperator(Client &) const;
-        bool    isInvited(Client &)  const;
+        bool    isMember(const Client &) const;
+        bool    isOperator(const Client &) const;
+        bool    isInvited(const Client &)  const;
 
-        void    setOperator(Client &);
-        void    unsetOperator(Client &);
+        void    setOperator(const Client &);
+        void    unsetOperator(const Client &);
 
-        void    kickUser(Client &admin, Client &member);
+        void    kickUser(const Client &admin, const Client &member);
 
         void    setLimit(const size_t limit);
         void    setTopic(const string topic);
@@ -66,16 +61,17 @@ class Channel
 
         bool    isIviteOnly() const;
         bool    isLimited() const;
-        bool    isPassword() const;
+        bool    isLocked() const;
         bool    isTopic() const;
 
         string getTopic() const;
         string getPassword() const;
         size_t      getLimit() const;
-        vector <Client&>      &getInvited(){return this->invited;};
+        vector <Client>      &getInvited(){return this->invited;};
 
-        Channel(Client &client, string name, string password, bool inviteOnly);
+        Channel(Client &client, string name);
         ~Channel();
 
         const string   &getName() const;        
 };
+#endif

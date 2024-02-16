@@ -11,6 +11,7 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
     this->DoCmd["PASS"] = static_cast<bool (Client::*)(vector<string>)>(&Client::setSrvPss);
     this->DoCmd["NICK"] = static_cast<bool (Client::*)(vector<string>)>(&Client::setNckName);
     this->DoCmd["USER"] = static_cast<bool (Client::*)(vector<string>)>(&Client::setUsrName);
+    this->DoCmd["JOIN"] = static_cast<bool (Client::*)(vector<string>)>(&Client::joinCommand);
     this->HstName = inet_ntoa(*ClntAddr);
 }
 
@@ -182,3 +183,11 @@ bool		  Client::setSrvPss(vector<string> cmd)
     return (false);
 }
 // REPLYFORMAT [":<ServerName> <StatusCode> <CLientNick> :<Msg>"]
+
+
+bool		  Client::joinCommand(vector<string> cmd)
+{
+    for (vector<string>::iterator it = cmd.begin(); it != cmd.end(); it++)
+        cout << "\'"<<*it <<  "\'"<<endl;
+    return (true);
+}
