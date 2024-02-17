@@ -49,7 +49,7 @@ bool    Client::joinCommand(vector<string> join)
 
     if (!this->Regestred)
     {
-        msg += "451  JOIN :You have not registered\n";
+        msg += ":ircserv 451 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " " + cmd[0] + " :You have not registered\r\n";
         send(this->ClntFd, msg.c_str(), msg.size(), 0);
         return (false);
     }
