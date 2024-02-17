@@ -71,7 +71,12 @@ bool    Client::ParsAndExec() {
     }
     if (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty()) {
         if (!this->Regestred)
-            cout << "Sending Welcome Message To Client" << endl;
+        {
+            string msg = ": 001 " + this->NckName + " :Welcome to Internet Chat Relay\n";
+            msg += ": 002 " + this->NckName + " : Your Host is HOST, running version 1.0\n";
+            msg += ": 003 " + this->NckName + " : Ther server was created on TIMESTAMPS"  "\r\n";
+            send(this->ClntFd, msg.c_str(), msg.size(), 0);
+        }
         this->Regestred = true;
     }
     this->Msg = "";
@@ -105,10 +110,10 @@ bool    Client::setNckName(vector<string> cmd)
             if (i != cmd[1].size())
                 msg = ":ircserv 432 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " :Erroneus nickname\r\n";
             else {
-                map<int, Client> Clnts = Server::getInstance()->getClients();
-                map<int, Client>::iterator it = Clnts.begin();
+                map<int, Client*> Clnts = Server::getInstance()->getClients();
+                map<int, Client*>::iterator it = Clnts.begin();
                 for (; it != Clnts.end(); it++)
-                    if (it->second.NckName == cmd[1])
+                    if (it->second->NckName == cmd[1])
                         break ;
                 if (it != Clnts.end())
                     msg = ":ircserv 433 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " :Nickname is already in use\r\n";
@@ -216,10 +221,10 @@ bool		  Client::SendPrvMsg(vector<string> cmd) {
                         msg = ":" + this->NckName + "!~" + this->RlName
                             + "@" + this->HstName + " " + cmd[0] + " "
                             + targets[i] + " :" + cmd[2] + "\r\n";
-                        vector<Client> chnlMbrs = Server::getInstance()->getChannels()[targets[i]].getMembers();
+                        vector<Client *> chnlMbrs = Server::getInstance()->getChannels()[targets[i]]->getMembers();
                         for (size_t j = 0; j < chnlMbrs.size(); j++)
-                            if (chnlMbrs[j].ClntFd != this->ClntFd)
-                                send(chnlMbrs[j].ClntFd, msg.c_str(), msg.size(), 0);
+                            if (chnlMbrs[j]->ClntFd != this->ClntFd)
+                                send(chnlMbrs[j]->ClntFd, msg.c_str(), msg.size(), 0);
                     }
                     else {
                         msg = ":ircserv 404 " +  this->NckName + " " + targets[i] + " :Cannot send to channel\r\n";
@@ -232,9 +237,9 @@ bool		  Client::SendPrvMsg(vector<string> cmd) {
                 }
             }
             else {
-                map<int, Client>::iterator it = Server::getInstance()->getClients().begin();
+                map<int, Client*>::iterator it = Server::getInstance()->getClients().begin();
                 for (; it != Server::getInstance()->getClients().end(); it++)
-                    if (it->second.NckName == targets[i])
+                    if (it->second->NckName == targets[i])
                         break ;
                 if (it != Server::getInstance()->getClients().end()) {
                     msg = ":" + this->NckName + "!~" + this->RlName

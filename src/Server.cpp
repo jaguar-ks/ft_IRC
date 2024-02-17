@@ -98,7 +98,7 @@ void Server::launchServer() {
     }
     for (size_t i = 0; i < this->ClFds.size(); i++)
         if (this->ClFds[i].revents & POLLIN)
-            (this->SockFd == this->ClFds[i].fd) ? this->JoinServer() : this->ReplyToClient(this->Clients[this->ClFds[i].fd]); //? this->JoinServer() : this->;  // ? new client : client request;
+            (this->SockFd == this->ClFds[i].fd) ? this->JoinServer() : this->ReplyToClient(*(this->Clients[this->ClFds[i].fd])); //? this->JoinServer() : this->;  // ? new client : client request;
 }
 
 /*
@@ -118,7 +118,8 @@ bool Server::JoinServer() {
         cerr << "Establishing Connection : " << strerror(errno) << endl;
         return false;
     }
-    this->Clients[ClntFd] = Client(ClntFd, &ClntAddr.sin_addr);
+    Client *Clnt = new Client(ClntFd, &ClntAddr.sin_addr);
+    this->Clients[ClntFd] = Clnt;
     this->ClFds.push_back(pollfd());
     this->ClFds.back().fd = ClntFd;
     this->ClFds.back().events = POLLIN;
@@ -140,7 +141,7 @@ bool Server::ReplyToClient(Client &Clnt) {
         Clnt.getMsg() += Msg;
         if (Clnt.getMsg().size() < 2 || Clnt.getMsg().substr(Clnt.getMsg().size()-2) != "\r\n")
             return true;
-        Clnt.getMsg().erase(Clnt.getMsg().size()-2);
+        Clnt.getMsg().erase(Clnt.getMsg().size() - 2);
         Clnt.getMsg().erase(0, Clnt.getMsg().find_first_not_of(" \t\n\v\f\r"));
         cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Clnt.getMsg() << endl;
         return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();

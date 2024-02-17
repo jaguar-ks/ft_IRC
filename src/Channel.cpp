@@ -10,12 +10,13 @@ Channel::~Channel()
  * @param client The client object to be added as an operator and member of the channel.
  * @param name The name of the channel.
  */
-Channel::Channel(Client &client, string name)
+Channel::Channel(Client* const client, string name)
 : name(name)
 {
     memset(&this->privelege, 0, sizeof(this->privelege));
     this->operators.push_back(client);
     this->members.push_back(client);
+    // Server::getInstance()->getChannels()[name] = this;
 }
 
 const std::string &Channel::getName() const
@@ -23,7 +24,7 @@ const std::string &Channel::getName() const
     return (this->name);
 }
 
-void   Channel::addMember(const Client &member)
+void   Channel::addMember(Client* const member)
 {
     try
     {
@@ -35,7 +36,7 @@ void   Channel::addMember(const Client &member)
     }
 }
 
-void    Channel::addOperator(const Client &op)
+void    Channel::addOperator(Client* const op)
 {
     try
     {
@@ -48,7 +49,7 @@ void    Channel::addOperator(const Client &op)
 
 }
 
-void    Channel::invite(const Client &client)
+void    Channel::invite(Client* const client)
 {
     try
     {
@@ -59,13 +60,13 @@ void    Channel::invite(const Client &client)
         std::cerr << e.what() << '\n';
     }
 }
-void    Channel::removeMember(const Client &member)
+void    Channel::removeMember(Client* const member)
 {
     try
     {
-        for (vector <Client >::iterator it = this->members.begin(); it != this->members.end(); it++)
+        for (vector <Client *>::iterator it = this->members.begin(); it != this->members.end(); it++)
         {
-            if (it->getClntFd() == member.getClntFd())
+            if ((*it)->getClntFd() == member->getClntFd())
             {
                 this->members.erase(it);
                 break;
@@ -77,13 +78,13 @@ void    Channel::removeMember(const Client &member)
         std::cerr << e.what() << '\n';
     }
 }
-void    Channel::removeOperator(const Client &op)
+void    Channel::removeOperator(Client* const op)
 {
     try
     {
-        for (vector <Client >::iterator it = this->operators.begin(); it != this->operators.end(); it++)
+        for (vector <Client *>::iterator it = this->operators.begin(); it != this->operators.end(); it++)
         {
-            if (it->getClntFd() == op.getClntFd())
+            if ((*it)->getClntFd() == op->getClntFd())
             {
                 this->operators.erase(it);
                 break;
@@ -96,13 +97,13 @@ void    Channel::removeOperator(const Client &op)
     }
 }
 
-void    Channel::removeInvited(const Client &client)
+void    Channel::removeInvited(Client* const client)
 {
     try
     {
-        for (vector <Client >::iterator it = this->invited.begin(); it != this->invited.end(); it++)
+        for (vector <Client *>::iterator it = this->invited.begin(); it != this->invited.end(); it++)
         {
-            if (it->getClntFd() == client.getClntFd())
+            if ((*it)->getClntFd() == client->getClntFd())
             {
                 this->invited.erase(it);
                 break;
@@ -115,41 +116,41 @@ void    Channel::removeInvited(const Client &client)
     }
 }
 
-vector <Client> Channel::getMembers() const
+vector <Client*> Channel::getMembers() const
 {
     return (this->members);
 }
 
-vector <Client> Channel::getOperators() const
+vector <Client*> Channel::getOperators() const
 {
     return (this->operators);
 }
 
-bool    Channel::isMember(const Client &member) const
+bool    Channel::isMember(Client* const member) const
 {
-    for (vector<Client>::const_iterator it = this->members.begin(); it != this->members.end(); it++)
-        if (it ->getClntFd() == member.getClntFd())
+    for (vector<Client*>::const_iterator it = this->members.begin(); it != this->members.end(); it++)
+        if ((*it)->getClntFd() == member->getClntFd())
             return true;
     return (false);
 }
 
-bool    Channel::isOperator(const Client & admin) const
+bool    Channel::isOperator(Client* const admin) const
 {
-    for (vector<Client>::const_iterator it = this->operators.begin(); it != this->operators.end(); it++)
-        if (it ->getClntFd() == admin.getClntFd())
+    for (vector<Client*>::const_iterator it = this->operators.begin(); it != this->operators.end(); it++)
+        if ((*it)->getClntFd() == admin->getClntFd())
             return true;
     return (false);
 }
 
-bool    Channel::isInvited(const Client &client) const
+bool    Channel::isInvited(Client* const client) const
 {
-    for (vector<Client>::const_iterator it = this->invited.begin(); it != this->invited.end(); it++)
-        if (it ->getClntFd() == client.getClntFd())
+    for (vector<Client*>::const_iterator it = this->invited.begin(); it != this->invited.end(); it++)
+        if ((*it)->getClntFd() == client->getClntFd())
             return true;
     return (false);
 }
 
-void    Channel::setOperator(const Client &client)
+void    Channel::setOperator(Client* const client)
 {
     try
     {
@@ -162,7 +163,7 @@ void    Channel::setOperator(const Client &client)
     }
 }
 
-void    Channel::unsetOperator(const Client &client)
+void    Channel::unsetOperator(Client* const client)
 {
     try
     {
@@ -175,7 +176,7 @@ void    Channel::unsetOperator(const Client &client)
     }
 }
 
-void    Channel::kickUser(const Client &admin, const Client &user)
+void    Channel::kickUser(Client* const admin, Client* const user)
 {
     try
     {
