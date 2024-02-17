@@ -35,15 +35,15 @@ void    Client::setCmd(string line) {
 
 bool    Client::ParsAndExec() {
     this->setCmd(this->Msg);
-    for (size_t i = 0; i < this->Cmd.size(); i++)
-        cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? "|" : "|\n");
+    // for (size_t i = 0; i < this->Cmd.size(); i++)
+    //     cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? "|" : "|\n");
     if (!this->Regestred) {
         if (this->Athentication.find(this->Cmd[0]) != this->Athentication.end())
             (this->*Athentication[this->Cmd[0]])(this->Cmd);
         else
             cerr << "Invalid Command" << endl;
         this->Regestred = (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty());
-        cout << this->SrvPss << " | " << this->NckName << " | " << this->UsrName << endl;
+        // cout << this->SrvPss << " | " << this->NckName << " | " << this->UsrName << endl;
     }
     else {
         cout << "Do Command" << endl;

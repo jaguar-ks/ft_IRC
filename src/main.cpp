@@ -5,7 +5,7 @@ using std::cout;
 void hundl(int) {interpted = true;}
 
 // void f(void){system("leaks ircserv");}
-#include "BtcPrice.hpp"
+// #include "BtcPrice.hpp"
 
 int main(int ac, char **av) {
     // atexit(f);
@@ -15,8 +15,8 @@ int main(int ac, char **av) {
         string prt(av[1]);  
         Server *srv = Server::InstanceServer(prt, pwd);
         cout << "\t\t[Server Started]" << endl << "Port: " << prt << endl;
-		BtcPrice btc("BtcPrice", 0, GETPRICE);
-		btc.connectToServer(srv);
+		// BtcPrice btc("BtcPrice", 0, GETPRICE);
+		// btc.connectToServer(srv);
         while (!interpted)
             srv->launchServer();
     }

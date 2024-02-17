@@ -151,9 +151,10 @@ bool Server::ReplyToClient(Client &Clnt) {
         Clnt.getMsg() += Msg;
         if (Clnt.getMsg().substr(Clnt.getMsg().size()-2) != "\r\n")
             return true;
+	std::cout << Clnt.getMsg();
         Clnt.getMsg().erase(Clnt.getMsg().size()-2);
         Clnt.getMsg().erase(0, Clnt.getMsg().find_first_not_of(" \t\n\v\f\r"));
-        cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Clnt.getMsg() << endl;
+        // cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Clnt.getMsg() << endl;
         return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
     }
     cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
@@ -176,6 +177,7 @@ void	Server::BroadCastMsg( const Client& reciever, const stringstream& msg ) con
 }
 void	Server::RegistMsgReply(const Client& u) const
 {
+	cout << "ok" << endl;
 	stringstream	wMsg;
 		// RPL_WELCOME
 	const string&	nickName = u.getNckName();
