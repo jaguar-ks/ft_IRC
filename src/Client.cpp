@@ -59,7 +59,7 @@ bool    Client::ParsAndExec() {
     stringstream tmp(this->Msg);
     // for (size_t i = 0; i < this->Cmd.size(); i++)
     //     cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? " | " : "\n");
-    while (!getline(tmp, this->Msg, '\r').eof()) {
+    while (!getline(tmp, this->Msg, '\n').eof()) {
         this->setCmd(this->Msg);
         for (size_t i = 0; i < this->Cmd[0].size(); i++)
             if (isalpha(this->Cmd[0][i]) && islower(this->Cmd[0][i]))
