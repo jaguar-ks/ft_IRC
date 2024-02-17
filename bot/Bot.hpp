@@ -1,7 +1,8 @@
 #pragma once
-#ifndef BOR_HPP
+#ifndef BOT_HPP
 # define BOT_HPP
-
+#define  Sncro(x)\
+	usleep(x)
 #include <algorithm>
 #include <string>
 #include <iostream>
@@ -19,7 +20,7 @@
 #include <cerrno>
 #include <arpa/inet.h>
 #include <sstream>
-
+# define _OPTIMAL 5
 typedef enum
 {
 	TALKTOME,

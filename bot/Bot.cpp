@@ -22,7 +22,7 @@ bool			Bot::autoRegister(std::string pass)
 		return false;
 	}
 	ss.str("");
-	usleep(5);
+	Sncro(_OPTIMAL);
 	ss << "NICK " << this->getName() << "\r\n";
 	if (send(this->getSocketFd(), ss.str().c_str(), ss.str().length(), 0) == -1)
 	{
