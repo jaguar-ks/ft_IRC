@@ -215,6 +215,11 @@ vector<string> getTargets(string str) {
 bool		  Client::SendPrvMsg(vector<string> cmd) {
     string         msg;
     bool           rt = true;
+    if (!this->Regestred) {
+        msg = ":ircserv 451 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " " + cmd[0] + " :You have not registered\r\n";
+        send(this->ClntFd, msg.c_str(), msg.size(), 0);
+        return false;
+    }
     if (cmd.size() == 3) {
         vector<string> targets = getTargets(cmd[1]);
         for (size_t i = 0; i < targets.size(); i++) {
