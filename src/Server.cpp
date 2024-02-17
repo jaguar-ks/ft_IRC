@@ -19,17 +19,17 @@ bool isdigit_b(int c) {return isdigit(c);}
     the problem  
 */
 void Server::SetSockFd(string &port) {
-    struct addrinfo *tmp, hnt;
+    struct addrinfo *ptr, *tmp, hnt;
     memset(&hnt, 0, sizeof(hnt));
     hnt.ai_family = AF_INET;
     hnt.ai_protocol = IPPROTO_TCP;
     hnt.ai_socktype = SOCK_STREAM;
-    int status = getaddrinfo("0.0.0.0", port.c_str(), &hnt, &servinfo), opt_val = 1;
+    int status = getaddrinfo("0.0.0.0", port.c_str(), &hnt, &ptr), opt_val = 1;
     if (status) {
         cerr << "Getting Address Info : " << gai_strerror(status) << endl;
         exit(1);
     }
-    for (tmp = servinfo; tmp; tmp = tmp->ai_next) {
+    for (tmp = ptr; tmp; tmp = tmp->ai_next) {
         this->SockFd = socket(tmp->ai_family, tmp->ai_socktype, tmp->ai_protocol);
         if (this->SockFd < 0)
             continue;
@@ -40,6 +40,7 @@ void Server::SetSockFd(string &port) {
         }
         break ;
     }
+    freeaddrinfo(ptr);
     if (!tmp) {
         cerr << "Binding The Socket : " << strerror(errno) << endl;
         close(this->SockFd);
@@ -97,7 +98,6 @@ string Server::Welcome() {
     for to read from as behaving
     according to which file
 */
-
 void Server::launchServer() {
     int count = poll(&this->ClFds[0], this->ClFds.size(), 0);
     if (count < 0) {
@@ -106,7 +106,7 @@ void Server::launchServer() {
     }
     for (size_t i = 0; i < this->ClFds.size(); i++)
         if (this->ClFds[i].revents & POLLIN)
-            (this->SockFd == this->ClFds[i].fd) ? this->JoinServer() : this->ReplyToClient(this->Clients[this->ClFds[i].fd]); //? this->JoinServer() : this->;  // ? new client : client request;
+            (this->SockFd == this->ClFds[i].fd) ? this->JoinServer() : this->ReplyToClient(*(this->Clients[this->ClFds[i].fd])); //? this->JoinServer() : this->;  // ? new client : client request;
 }
 
 /*
@@ -126,10 +126,8 @@ bool Server::JoinServer() {
         cerr << "Establishing Connection : " << strerror(errno) << endl;
         return false;
     }
-    this->Clients[ClntFd] = Client(ClntFd, &ClntAddr.sin_addr);
-	cout << "[ info ] Client[" << inet_ntoa(ClntAddr.sin_addr) << "] with id: #" 
-	<< ClntFd << " Establishing connection to server..."<< endl;
-	RegistMsgReply(this->Clients[ClntFd]);
+    Client *Clnt = new Client(ClntFd, &ClntAddr.sin_addr);
+    this->Clients[ClntFd] = Clnt;
     this->ClFds.push_back(pollfd());
     this->ClFds.back().fd = ClntFd;
     this->ClFds.back().events = POLLIN;
@@ -146,15 +144,14 @@ bool Server::ReplyToClient(Client &Clnt) {
     char    Buff[3000];
     memset(Buff, 0, 3000);
     int val = recv(Clnt.getClntFd(), Buff, 3000, 0);
-    if (val > 0) {
+    if (val > 0 && strlen(Buff)) {
         string Msg(Buff);
         Clnt.getMsg() += Msg;
-        if (Clnt.getMsg().substr(Clnt.getMsg().size()-2) != "\r\n")
+        if (Clnt.getMsg().size() < 2 || Clnt.getMsg().substr(Clnt.getMsg().size()-2) != "\r\n")
             return true;
-	std::cout << Clnt.getMsg();
-        Clnt.getMsg().erase(Clnt.getMsg().size()-2);
+        Clnt.getMsg().erase(Clnt.getMsg().size() - 2);
         Clnt.getMsg().erase(0, Clnt.getMsg().find_first_not_of(" \t\n\v\f\r"));
-        // cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Clnt.getMsg() << endl;
+        cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Clnt.getMsg() << endl;
         return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
     }
     cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
@@ -175,31 +172,25 @@ void	Server::BroadCastMsg( const Client& reciever, const stringstream& msg ) con
 		cerr << RED << "[ Error ] BroadCastMsg Function " << strerror(errno) << C_CLS << endl;
 	
 }
-void	Server::RegistMsgReply(const Client& u) const
+void	Server::RegistMsgReply(const Client& u)
 {
 	cout << "ok" << endl;
 	stringstream	wMsg;
 		// RPL_WELCOME
 	const string&	nickName = u.getNckName();
 	wMsg << GRN << ":" << "<servername> 001 " << nickName 
-	<< ":Welcome to the Internet Relay Network " << C_CLS << nickName << "\r\n";
-	this->BroadCastMsg(u, wMsg);
-	wMsg.str("");
+	<< " : Welcome to the Internet Relay Network" << "\r\n";
 		// RPL_YOURHOST
-	wMsg << GRN  << ":" << "<servername> 002 " << nickName 
-	<< ":Your host is <servername>, running version <version> " << C_CLS << "\r\n";
-	this->BroadCastMsg(u, wMsg);
-	wMsg.str("");
+	wMsg <<":" << "<servername> 002 " << nickName 
+	<< " : Your host is <servername>, running version <version> " << "\r\n";
 		// RPL_CREATED
-	wMsg << GRN << ":" << "<servername> 003 " << nickName 
-	<< ":This <servername> server was created " << Server::LocalTime << C_CLS << "\r\n";
-	this->BroadCastMsg(u, wMsg);
-	wMsg.str("");
+	wMsg << ":" << "<servername> 003 " << nickName 
+	<< " :This <servername> server was created " << Server::Instance->LocalTime << "\r\n";
 		// RPL_MYINFO
 	// <available umodes>: List of available user modes.
 	// <available cmodes>: List of available channel modes.
-	wMsg << GRN << ":" << "server 004 " << nickName 
+	wMsg << ":" << "server 004 " << nickName 
 	<< " <servername>" << " <version> " << "<available umodes>" 
-	<< " <available cmodes>" << C_CLS << "\r\n";
-	this->BroadCastMsg(u, wMsg);
+	<< " <available cmodes>" << C_CLS << "\r";
+	Server::Instance->BroadCastMsg(u, wMsg);
 }

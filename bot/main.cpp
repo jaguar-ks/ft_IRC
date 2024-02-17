@@ -10,7 +10,7 @@ int main()
 	while (1)
 	{
 		memset(buf, 0, sizeof(buf));
-		if ((nbytes = recv(btc.getSocketFd(), buf, sizeof(buf), 0)) <= 0)
+		if ((nbytes = recv(btc.getSocketFd(), buf, sizeof(buf) - 1, 0)) <= 0)
 		{
 			if (nbytes == 0)
 				std::cerr << "Connection closed" << std::endl;
@@ -22,7 +22,7 @@ int main()
 		else
 		{
 			buf[nbytes] = '\0';
-			std::cout << buf << std::endl;
+			std::cerr << buf << std::endl;
 		}
 	}
 	return 0;
