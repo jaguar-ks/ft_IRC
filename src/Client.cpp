@@ -56,28 +56,31 @@ void    Client::setCmd(string line) {
  */
 bool    Client::ParsAndExec() {
     bool rt;
-    this->setCmd(this->Msg);
+    stringstream tmp(this->Msg);
     // for (size_t i = 0; i < this->Cmd.size(); i++)
     //     cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? " | " : "\n");
-    for (size_t i = 0; i < this->Cmd[0].size(); i++)
-        if (isalpha(this->Cmd[0][i]) && islower(this->Cmd[0][i]))
-            this->Cmd[0][i] = toupper(this->Cmd[0][i]);
-    if (this->DoCmd.find(this->Cmd[0]) != this->DoCmd.end())
-        rt = (this->*DoCmd[this->Cmd[0]])(this->Cmd);
-    else {
-        string msg = ":ircserv 421 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " " + this->Cmd[0] + " :Unknown command\r\n";
-        send(this->ClntFd, msg.c_str(), msg.size(), 0);
-        rt = false;
-    }
-    if (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty()) {
-        if (!this->Regestred)
-        {
-            string msg = ": 001 " + this->NckName + " :Welcome to Internet Chat Relay\n";
-            msg += ": 002 " + this->NckName + " : Your Host is HOST, running version 1.0\n";
-            msg += ": 003 " + this->NckName + " : Ther server was created on TIMESTAMPS"  "\r\n";
+    while (!getline(tmp, this->Msg, '\r').eof()) {
+        this->setCmd(this->Msg);
+        for (size_t i = 0; i < this->Cmd[0].size(); i++)
+            if (isalpha(this->Cmd[0][i]) && islower(this->Cmd[0][i]))
+                this->Cmd[0][i] = toupper(this->Cmd[0][i]);
+        if (this->DoCmd.find(this->Cmd[0]) != this->DoCmd.end())
+            rt = (this->*DoCmd[this->Cmd[0]])(this->Cmd);
+        else {
+            string msg = ":ircserv 421 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " " + this->Cmd[0] + " :Unknown command\r\n";
             send(this->ClntFd, msg.c_str(), msg.size(), 0);
+            rt = false;
         }
-        this->Regestred = true;
+        if (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty()) {
+            if (!this->Regestred)
+            {
+                string msg = ": 001 " + this->NckName + " :Welcome to Internet Chat Relay\n";
+                msg += ": 002 " + this->NckName + " : Your Host is HOST, running version 1.0\n";
+                msg += ": 003 " + this->NckName + " : Ther server was created on TIMESTAMPS"  "\r\n";
+                send(this->ClntFd, msg.c_str(), msg.size(), 0);
+            }
+            this->Regestred = true;
+        }
     }
     this->Msg = "";
     this->Cmd.clear();
