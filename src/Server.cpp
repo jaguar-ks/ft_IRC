@@ -98,7 +98,7 @@ void Server::launchServer() {
     }
     for (size_t i = 0; i < this->ClFds.size(); i++)
         if (this->ClFds[i].revents & POLLIN)
-            (this->SockFd == this->ClFds[i].fd) ? this->JoinServer() : this->ReplyToClient(*(this->Clients[this->ClFds[i].fd])); //? this->JoinServer() : this->;  // ? new client : client request;
+            (this->SockFd == this->ClFds[i].fd) ? this->JoinServer() : this->ReplyToClient(this->Clients[this->ClFds[i].fd]); //? this->JoinServer() : this->;  // ? new client : client request;
 }
 
 /*
@@ -118,8 +118,7 @@ bool Server::JoinServer() {
         cerr << "Establishing Connection : " << strerror(errno) << endl;
         return false;
     }
-    Client *Clnt = new Client(ClntFd, &ClntAddr.sin_addr);
-    this->Clients[ClntFd] = Clnt;
+    this->Clients.insert(pair<int, Client>(ClntFd, Client(ClntFd, &ClntAddr.sin_addr)));
     this->ClFds.push_back(pollfd());
     this->ClFds.back().fd = ClntFd;
     this->ClFds.back().events = POLLIN;
@@ -147,12 +146,52 @@ bool Server::ReplyToClient(Client &Clnt) {
         return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
     }
     cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
-    vector<pollfd>::iterator it = this->ClFds.begin();
-    for (; it != this->ClFds.end(); it++)
-        if (it->fd == Clnt.getClntFd())
-            break;
-    this->ClFds.erase(it);
-    close(Clnt.getClntFd());
-    this->Clients.erase(Clnt.getClntFd());
+    this->RemoveClient(Clnt.getClntFd());
     return false;
 }
+
+void    Server::RemoveClient(int fd) {
+    for (size_t i = 0; i < this->ClFds.size(); i++) {
+        if (this->ClFds[i].fd == fd) {
+            this->ClFds.erase(this->ClFds.begin() + i);
+            break ;
+        }
+    }
+    if (!this->Clients[fd].getChnls().empty()) {
+        for (size_t i = 0; i < this->Clients[fd].getChnls().size(); i++) {
+            VcRemove(this->Channels[this->Clients[fd].getChnls()[i]]->getMembers(), &this->Clients[fd]);
+            if (this->Channels[this->Clients[fd].getChnls()[i]]->getMembers().empty()) {
+                this->Channels.erase(this->Clients[fd].getChnls()[i]);
+                VcRemove(this->Clients[fd].getChnls(), this->Clients[fd].getChnls()[i]);
+                continue;
+            }
+            VcRemove(this->Channels[this->Clients[fd].getChnls()[i]]->getOperators(), &this->Clients[fd]);
+            if (this->Channels[this->Clients[fd].getChnls()[i]]->getOperators().empty() && !this->Channels[this->Clients[fd].getChnls()[i]]->getMembers().empty())
+                this->Channels[this->Clients[fd].getChnls()[i]]->getOperators().push_back(this->Channels[this->Clients[fd].getChnls()[i]]->getMembers().front());
+            VcRemove(this->Channels[this->Clients[fd].getChnls()[i]]->getInvited(), &this->Clients[fd]);
+            VcRemove(this->Clients[fd].getChnls(), this->Clients[fd].getChnls()[i]);
+        }
+    }
+    this->Clients.erase(fd);
+    close(fd);
+}
+
+template <typename T>
+
+void VcRemove(vector<T> &vc, T trg) {
+    size_t i = 0;
+    for (;i < vc.size(); i++)
+        if (vc[i] == trg)
+            break ;
+    if (i != vc.size())
+        vc.erase(vc.begin() + i);
+}
+
+// template <typename T>
+
+// bool    VcFind(vector<T> &vc, T trg) {
+//     for(size_t i = 0; i < vc.size(); i++)
+//         if (vc[i] == trg)
+//             return true;
+//     return false;
+// }

@@ -49,7 +49,7 @@ bool    Client::joinCommand(vector<string> join)
 
     if (!this->Regestred)
     {
-        msg += ":ircserv 451 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " " + cmd[0] + " :You have not registered\r\n";
+        msg = ":ircserv 451 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " " + join[0] + " :You have not registered\r\n";
         send(this->ClntFd, msg.c_str(), msg.size(), 0);
         return (false);
     }
@@ -71,7 +71,11 @@ bool    Client::joinCommand(vector<string> join)
             msg += "creation:" + this->NckName+ "!" + this->UsrName + "@" + this->HstName + " JOIN " + channels.front() + "\r\n";
             msg += ":IRC_SERVER 353 " + this->NckName + " = " + channels.front() + " :@"+this->NckName+"\r\n";
             msg += ":IRC_SERVER 366 " + this->NckName + " " + channels.front() + " ::End of /NAMES list\r\n";
-            channels.pop();
+            chnl->addMember(this);
+            chnl->addOperator(this);
+            this->Chnls.push_back(channels.front());
+            // channels.pop();
+            // continue ;
         }
         else
         {
@@ -79,30 +83,27 @@ bool    Client::joinCommand(vector<string> join)
 
             if (search->second->isLocked())
             {
-                if (passwords.empty())
+                if (passwords.empty() || (search->second->getPassword() != passwords.front()))
                 {
                     msg += "475  JOIN :Wrong password";
                     channels.pop();
                     continue;
                 }
-                else if (search->second->getPassword() != passwords.front())
-                {
-                    msg += "475  JOIN :Wrong password";
-                    channels.pop();
-                    continue;
-                }
-                else
+                else {
+                    // search->second->addMember(this);
                     passwords.pop();
+                }
             }
 
             if (search->second->isLimited())
             {
-                if (search->second->getLimit() == search->second->getMembers().size())
-                {
+                if (search->second->getLimit() >= search->second->getMembers().size()) {
                     msg += "471  JOIN :Cannot join channel (+l)";
                     channels.pop();
                     continue;
                 }
+                // else
+                    // search->second->addMember(this);
             }
 
             if (search->second->isMember(this))
@@ -114,29 +115,32 @@ bool    Client::joinCommand(vector<string> join)
 
             if (search->second->isInviteOnly())
             {
-                if (!search->second->isInvited(this))
-                {
+                if (!search->second->isInvited(this)){
                     msg += "473  JOIN :Cannot join channel (+i)";
                     channels.pop();
                     continue;
                 }
-                else
+                else {
+                    // search->second->addMember(this);
                     search->second->removeInvited(this);
+                }
             }
             search->second->addMember(this);
+            this->Chnls.push_back(channels.front());
             cout << "Channel : am heeeeeeeeeeeeeeeeere{{{{{{{{{{{{}}}}}}}}}}}}" << channels.front() << endl;
-            for (vector <Client*>::iterator it = Channels[channels.front()]->getMembers().begin(); it != search->second->getMembers().end(); it++)
+            // for (vector <Client*>::iterator it = Channels[channels.front()]->getMembers().begin(); it != search->second->getMembers().end(); it++)
+            for (size_t i = 0; i < search->second->getMembers().size(); i++)
             {
-            msg = ":" + this->NckName+ "!" + this->UsrName + "@" + this->HstName + " JOIN " + channels.front() + "\r\n";
+                msg = ":" + this->NckName+ "!" + this->UsrName + "@" + this->HstName + " JOIN " + channels.front() + "\r\n";
                 // ;
                 // cout << "Sending to " << (*it)->getNckName() << endl;
-                // send((*it)->getClntFd(), msg.c_str(), msg.size(), 0);
+                send(search->second->getMembers()[i]->getClntFd(), msg.c_str(), msg.size(), 0);
             }
             msg = ":IRC_SERVER 353 " + this->NckName + " = " + channels.front() + " :@"+this->NckName+"\r\n";
             msg += ":IRC_SERVER 366 " + this->NckName + " " + channels.front() + " ::End of /NAMES list\r\n";
-            if (!channels.empty())
-                channels.pop();
+            // if (!channels.empty())
         }
+        channels.pop();
     }
 
     send(this->ClntFd, msg.c_str(), msg.size(), 0);

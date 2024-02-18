@@ -116,12 +116,12 @@ void    Channel::removeInvited(Client* const client)
     }
 }
 
-vector <Client*> Channel::getMembers() const
+vector <Client*> &Channel::getMembers() 
 {
     return (this->members);
 }
 
-vector <Client*> Channel::getOperators() const
+vector <Client*> &Channel::getOperators() 
 {
     return (this->operators);
 }
@@ -155,7 +155,7 @@ void    Channel::setOperator(Client* const client)
     try
     {
         this->addOperator(client);
-        this->removeMember(client);
+        // this->removeMember(client);
     }
     catch(const std::exception& e)
     {
@@ -167,7 +167,7 @@ void    Channel::unsetOperator(Client* const client)
 {
     try
     {
-        this->addMember(client);
+        // this->addMember(client);
         this->removeOperator(client);
     }
     catch(const std::exception& e)
@@ -202,7 +202,7 @@ void    Channel::autoAssignAdmin()
         if (members.size() > 0)
         {
             this->addOperator(this->members[0]);
-            this->removeMember(this->members[0]);
+            // this->removeMember(this->members[0]);
         }
         else
         {

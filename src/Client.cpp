@@ -13,6 +13,7 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
     this->DoCmd["USER"] = static_cast<bool (Client::*)(vector<string>)>(&Client::setUsrName);
     this->DoCmd["JOIN"] = static_cast<bool (Client::*)(vector<string>)>(&Client::joinCommand);
     this->DoCmd["PRIVMSG"] = static_cast<bool (Client::*)(vector<string>)>(&Client::SendPrvMsg);
+    this->DoCmd["INFO"] = static_cast<bool (Client::*)(vector<string>)>(&Client::Info);
     this->HstName = inet_ntoa(*ClntAddr);
 }
 
@@ -57,10 +58,12 @@ void    Client::setCmd(string line) {
 bool    Client::ParsAndExec() {
     bool rt;
     stringstream tmp(this->Msg);
-    // for (size_t i = 0; i < this->Cmd.size(); i++)
-    //     cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? " | " : "\n");
-    while (!getline(tmp, this->Msg, '\n').eof()) {
+    this->Msg = "";
+    while (!getline(tmp, this->Msg).eof()) {
+        this->Msg.pop_back();
         this->setCmd(this->Msg);
+        for (size_t i = 0; i < this->Cmd.size(); i++)
+            cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? " | " : "\n");
         for (size_t i = 0; i < this->Cmd[0].size(); i++)
             if (isalpha(this->Cmd[0][i]) && islower(this->Cmd[0][i]))
                 this->Cmd[0][i] = toupper(this->Cmd[0][i]);
@@ -113,10 +116,10 @@ bool    Client::setNckName(vector<string> cmd)
             if (i != cmd[1].size())
                 msg = ":ircserv 432 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " :Erroneus nickname\r\n";
             else {
-                map<int, Client*> Clnts = Server::getInstance()->getClients();
-                map<int, Client*>::iterator it = Clnts.begin();
+                map<int, Client> Clnts = Server::getInstance()->getClients();
+                map<int, Client>::iterator it = Clnts.begin();
                 for (; it != Clnts.end(); it++)
-                    if (it->second->NckName == cmd[1])
+                    if (it->second.NckName == cmd[1])
                         break ;
                 if (it != Clnts.end())
                     msg = ":ircserv 433 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " :Nickname is already in use\r\n";
@@ -245,9 +248,9 @@ bool		  Client::SendPrvMsg(vector<string> cmd) {
                 }
             }
             else {
-                map<int, Client*>::iterator it = Server::getInstance()->getClients().begin();
+                map<int, Client>::iterator it = Server::getInstance()->getClients().begin();
                 for (; it != Server::getInstance()->getClients().end(); it++)
-                    if (it->second->NckName == targets[i])
+                    if (it->second.NckName == targets[i])
                         break ;
                 if (it != Server::getInstance()->getClients().end()) {
                     msg = ":" + this->NckName + "!~" + this->RlName
@@ -268,6 +271,27 @@ bool		  Client::SendPrvMsg(vector<string> cmd) {
         rt = false;
     }
     return rt;
+}
+
+bool Client::Info(vector<string> cmd) {
+    (void)cmd;
+    string msg =  "Channels:[";
+    for (size_t i = 0; i < this->Chnls.size(); i++)
+        msg += this->Chnls[i] + ((i+1 == this->Chnls.size()) ? "]\n" : " | ");
+    for (size_t i = 0; i < this->Chnls.size(); i++) {
+        msg += this->Chnls[i] + " Admine:[";
+        map<string, Channel*> chnl = Server::getInstance()->getChannels();
+        if (VcFind(chnl[this->Chnls[i]]->getOperators(), this))
+            msg += "✓]\n";
+        else
+            msg +="✕]\n";
+        msg += "ChanelMembers:[";
+        vector<Client*> channelMembers = chnl[this->Chnls[i]]->getMembers();
+        for (size_t j = 0; j < channelMembers.size(); j++)
+            msg += channelMembers[j]->getNckName() + ((j+1 == channelMembers.size()) ? "]\n" : " | ");
+    }
+    send(this->ClntFd, msg.c_str(), msg.size(), 0);
+    return true;
 }
 // bool		  Client::joinCommand(vector<string> cmd)
 // {
