@@ -44,6 +44,7 @@ class Client {
 		const string   &getUsrName(void) const {return this->UsrName;}
 		const string   &getNckName(void) const {return this->NckName;}
 		string         &getMsg(void) {return this->Msg;}
+		string		 getMsgDzeb() {return this->Msg;}
 		const string   &getHstName(void) const {return this->HstName;}
 		vector<string> &getChnls(void) {return this->Chnls;}
         /****************************/
@@ -52,6 +53,7 @@ class Client {
 		bool		   setUsrName(vector<string>);
 		bool		   setSrvPss(vector<string>);
 		void		   setCmd(string);
+		void		   setMsgDzeb(string rep) {this->Msg = rep;}
         /****************************/
 		bool		   ParsAndExec();
 		bool		   joinCommand(vector<string>);

@@ -124,14 +124,14 @@ bool    Client::joinCommand(vector<string> join)
                     search->second->removeInvited(this);
             }
             search->second->addMember(this);
-            cout << "Channel : am heeeeeeeeeeeeeeeeere{{{{{{{{{{{{}}}}}}}}}}}}" << channels.front() << endl;
-            for (vector <Client*>::iterator it = Channels[channels.front()]->getMembers().begin(); it != search->second->getMembers().end(); it++)
-            {
-            msg = ":" + this->NckName+ "!" + this->UsrName + "@" + this->HstName + " JOIN " + channels.front() + "\r\n";
-                // ;
-                // cout << "Sending to " << (*it)->getNckName() << endl;
-                // send((*it)->getClntFd(), msg.c_str(), msg.size(), 0);
-            }
+            // cout << "Channel : am heeeeeeeeeeeeeeeeere{{{{{{{{{{{{}}}}}}}}}}}}" << channels.front() << endl;
+            // for (vector <Client*>::iterator it = Channels[channels.front()]->getMembers().begin(); it != search->second->getMembers().end(); it++)
+            // {
+            // msg = ":" + this->NckName+ "!" + this->UsrName + "@" + this->HstName + " JOIN " + channels.front() + "\r\n";
+            //     // ;
+            //     // cout << "Sending to " << (*it)->getNckName() << endl;
+            //     // send((*it)->getClntFd(), msg.c_str(), msg.size(), 0);
+            // }
             msg = ":IRC_SERVER 353 " + this->NckName + " = " + channels.front() + " :@"+this->NckName+"\r\n";
             msg += ":IRC_SERVER 366 " + this->NckName + " " + channels.front() + " ::End of /NAMES list\r\n";
             if (!channels.empty())

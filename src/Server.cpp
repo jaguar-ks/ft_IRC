@@ -144,6 +144,7 @@ bool Server::ReplyToClient(Client &Clnt) {
     char    Buff[3000];
     memset(Buff, 0, 3000);
     int val = recv(Clnt.getClntFd(), Buff, 3000, 0);
+	cout << "val: " << Buff << "{}" << endl;
     if (val > 0 && strlen(Buff)) {
         string Msg(Buff);
         Clnt.getMsg() += Msg;
@@ -155,7 +156,24 @@ bool Server::ReplyToClient(Client &Clnt) {
 		if (Clnt.getMsg().empty())
 			return true;
 		else
-			return Clnt.ParsAndExec();
+		{
+			bool parsed;
+			stringstream msg(Clnt.getMsg());	
+			Clnt.getMsg().clear();
+			while (true)
+			{
+				string tmp;
+				getline(msg, tmp, '\n');
+				cout << "tmp: " << tmp << endl;
+				Clnt.setMsgDzeb(tmp);
+				if (msg.eof())
+					break;
+				parsed = Clnt.ParsAndExec();
+				// tmp.clear();
+			}
+			return parsed;
+		}
+			// return Clnt.ParsAndExec();
         // return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
     }
     cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
