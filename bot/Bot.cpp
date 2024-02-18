@@ -13,24 +13,24 @@ int				Bot::getSocketFd() const { return this->_fd; }
 bool			Bot::autoRegister(std::string pass)
 {
 	std::stringstream	ss;
-	ss << "PASS " << static_cast<std::string>(pass) << "\r\n";
-	// << "NICK " << this->getName() << "\r\n"
-	// << "USER " << this->getName() << " 0 * " << this->getName() << "\r\n";
-	if (send(this->getSocketFd(), ss.str().c_str(), ss.str().length(), 0) == -1)
-	{
-		std::cerr << "send: " << strerror(errno) << std::endl;
-		return false;
-	}
-	ss.str("");
-	Sncro(_OPTIMAL);
-	ss << "NICK " << this->getName() << "\r\n";
-	if (send(this->getSocketFd(), ss.str().c_str(), ss.str().length(), 0) == -1)
-	{
-		std::cerr << "send: " << strerror(errno) << std::endl;
-		return false;
-	}
-	ss.str("");
-	ss << "USER " << this->getName() << " 0 * " << this->getName() << "\r\n";
+	ss << "PASS " << static_cast<std::string>(pass) << "\r\n"
+	<< "NICK " << this->getName() << "\r\n"
+	<< "USER " << this->getName() << " 0 * " << this->getName() << "\r\n";
+	// if (send(this->getSocketFd(), ss.str().c_str(), ss.str().length(), 0) == -1)
+	// {
+	// 	std::cerr << "send: " << strerror(errno) << std::endl;
+	// 	return false;
+	// }
+	// ss.str("");
+	// // Sncro(_OPTIMAL);
+	// ss << "NICK " << this->getName() << "\r\n";
+	// if (send(this->getSocketFd(), ss.str().c_str(), ss.str().length(), 0) == -1)
+	// {
+	// 	std::cerr << "send: " << strerror(errno) << std::endl;
+	// 	return false;
+	// }
+	// ss.str("");
+	// ss << "USER " << this->getName() << " 0 * " << this->getName() << "\r\n";
 	if (send(this->getSocketFd(), ss.str().c_str(), ss.str().length(), 0) == -1)
 	{
 		std::cerr << "send: " << strerror(errno) << std::endl;

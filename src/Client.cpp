@@ -71,13 +71,7 @@ bool    Client::ParsAndExec() {
     }
     if (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty()) {
         if (!this->Regestred)
-        {
-            // string msg = ": 001 " + this->NckName + " :Welcome to Internet Chat Relay\n";
-            // msg += ": 002 " + this->NckName + " : Your Host is HOST, running version 1.0\n";
-            // msg += ": 003 " + this->NckName + " : Ther server was created on TIMESTAMPS"  "\r\n";
-            // send(this->ClntFd, msg.c_str(), msg.size(), 0);
 			Server::RegistMsgReply(*this);
-        }
         this->Regestred = true;
     }
     this->Msg = "";
