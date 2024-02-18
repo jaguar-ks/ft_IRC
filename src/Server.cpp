@@ -122,6 +122,10 @@ bool Server::JoinServer() {
     this->ClFds.push_back(pollfd());
     this->ClFds.back().fd = ClntFd;
     this->ClFds.back().events = POLLIN;
+    map<int, Client>::iterator it = this->Clients.begin();
+    cout << "\t---|Clients List|---" << endl;
+    for (;it != this->Clients.end(); it++)
+        cout << "Client:[" << it->second.getNckName() << "]in machine:[" << it->second.getHstName() << "] using socket[" << it->first <<"]" << endl;
     return true;
 }
 
@@ -174,6 +178,10 @@ void    Server::RemoveClient(int fd) {
     }
     this->Clients.erase(fd);
     close(fd);
+    map<int, Client>::iterator it = this->Clients.begin();
+    cout << "\t---|Clients List|---" << endl;
+    for (;it != this->Clients.end(); it++)
+        cout << "Client:[" << it->second.getNckName() << "]in machine:[" << it->second.getHstName() << "] using socket[" << it->first <<"]" << endl;
 }
 
 template <typename T>

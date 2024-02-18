@@ -71,8 +71,8 @@ bool    Client::joinCommand(vector<string> join)
             msg += "creation:" + this->NckName+ "!" + this->UsrName + "@" + this->HstName + " JOIN " + channels.front() + "\r\n";
             msg += ":IRC_SERVER 353 " + this->NckName + " = " + channels.front() + " :@"+this->NckName+"\r\n";
             msg += ":IRC_SERVER 366 " + this->NckName + " " + channels.front() + " ::End of /NAMES list\r\n";
-            chnl->addMember(this);
-            chnl->addOperator(this);
+            // chnl->addMember(this);
+            // chnl->addOperator(this);
             this->Chnls.push_back(channels.front());
             // channels.pop();
             // continue ;
