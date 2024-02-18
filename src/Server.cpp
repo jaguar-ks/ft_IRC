@@ -134,6 +134,22 @@ bool Server::JoinServer() {
     return true;
 }
 
+bool	BufferFeed(Client &Clnt, string &buffer)
+{
+	bool			parsed;
+	stringstream	feed(buffer);	
+	string			tmp;
+
+	while (!getline(feed, tmp, '\n').eof())
+	{
+		tmp.erase(tmp.size() - 1);
+		Clnt.setMsgDzeb(tmp);
+		parsed = Clnt.ParsAndExec();
+		tmp.clear();
+	}
+	return parsed;
+}
+
 /*
     Taking the incomming message form
     the client and and behaving acordding
@@ -144,37 +160,16 @@ bool Server::ReplyToClient(Client &Clnt) {
     char    Buff[3000];
     memset(Buff, 0, 3000);
     int val = recv(Clnt.getClntFd(), Buff, 3000, 0);
-	cout << "val: " << Buff << "{}" << endl;
+	// cout << "val: " << Buff << "{}" << endl;
     if (val > 0 && strlen(Buff)) {
         string Msg(Buff);
-        Clnt.getMsg() += Msg;
-        if (Clnt.getMsg().size() < 2 || Clnt.getMsg().substr(Clnt.getMsg().size()-2) != "\r\n")
+        // Clnt.getMsg() += Msg;
+        if (Msg.size() < 2 || Msg.substr(Msg.size()-2) != "\r\n")
             return true;
         // Clnt.getMsg().erase(Clnt.getMsg().size() - 2);
         // Clnt.getMsg().erase(0, Clnt.getMsg().find_first_not_of(" \t\n\v\f\r"));
-        cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Clnt.getMsg() << endl;
-		if (Clnt.getMsg().empty())
-			return true;
-		else
-		{
-			bool parsed;
-			stringstream msg(Clnt.getMsg());	
-			Clnt.getMsg().clear();
-			while (true)
-			{
-				string tmp;
-				getline(msg, tmp, '\n');
-				if (msg.eof())
-					break;
-				tmp.erase(tmp.size() - 1);
-        		tmp.erase(0, tmp.find_first_not_of(" \t\n\v\f\r"));
-				cout << "tmp: " << tmp << endl;
-				Clnt.setMsgDzeb(tmp);
-				parsed = Clnt.ParsAndExec();
-				tmp.clear();
-			}
-			return parsed;
-		}
+        cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Msg << endl;
+		return (Msg.size()) ? BufferFeed(Clnt, Msg) : true;
 			// return Clnt.ParsAndExec();
         // return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
     }
@@ -215,6 +210,6 @@ void	Server::RegistMsgReply(const Client& u)
 	// <available cmodes>: List of available channel modes.
 	wMsg << ":" << "server 004 " << nickName 
 	<< " <servername>" << " <version> " << "<available umodes>" 
-	<< " <available cmodes>" << C_CLS << "\r";
+	<< " <available cmodes>" << C_CLS << "\r\n";
 	Server::Instance->BroadCastMsg(u, wMsg);
 }
