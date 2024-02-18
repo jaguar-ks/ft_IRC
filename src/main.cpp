@@ -17,6 +17,7 @@ int main(int ac, char **av) {
         cout << "\t\t[Server Started]" << endl << "Port: " << prt << endl;
         while (!interpted)
             srv->launchServer();
+        system("leaks ircserv");
     }
     else {
         cerr << "Invalide Arguments : Usage : ./ircserv <port> <password>" << endl;

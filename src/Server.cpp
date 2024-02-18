@@ -94,7 +94,7 @@ void Server::launchServer() {
     int count = poll(&this->ClFds[0], this->ClFds.size(), 0);
     if (count < 0) {
         cerr << "Poll() function : " << strerror(errno) << endl;
-        exit(1);
+        // exit(1);
     }
     for (size_t i = 0; i < this->ClFds.size(); i++)
         if (this->ClFds[i].revents & POLLIN)
@@ -165,6 +165,7 @@ void    Server::RemoveClient(int fd) {
         for (size_t i = 0; i < this->Clients[fd].getChnls().size(); i++) {
             VcRemove(this->Channels[this->Clients[fd].getChnls()[i]]->getMembers(), &this->Clients[fd]);
             if (this->Channels[this->Clients[fd].getChnls()[i]]->getMembers().empty()) {
+                delete this->Channels[this->Clients[fd].getChnls()[i]];
                 this->Channels.erase(this->Clients[fd].getChnls()[i]);
                 VcRemove(this->Clients[fd].getChnls(), this->Clients[fd].getChnls()[i]);
                 continue;
