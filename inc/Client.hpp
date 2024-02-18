@@ -48,16 +48,19 @@ class Client {
 		vector<string> &getChnls(void) {return this->Chnls;}
         /****************************/
         /*         [SETTERS]        */
-		bool		   setNckName(vector<string>);
-		bool		   setUsrName(vector<string>);
-		bool		   setSrvPss(vector<string>);
 		void		   setCmd(string);
         /****************************/
         /*        [OPERATORS]       */
         bool operator==(Client &obj) {return this->ClntFd == obj.ClntFd;}
 		/****************************/
+        /*      [ClientActions]     */
 		bool		   ParsAndExec();
 		bool		   joinCommand(vector<string>);
 		bool		   SendPrvMsg(vector<string>);
 		bool		   Info(vector<string>);
+		bool		   setNckName(vector<string>);
+		bool		   setUsrName(vector<string>);
+		bool		   setSrvPss(vector<string>);
+		bool		   QuitServer(vector<string>);
+		/****************************/
 };
