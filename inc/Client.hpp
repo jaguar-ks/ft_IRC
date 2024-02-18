@@ -53,7 +53,11 @@ class Client {
 		bool		   setSrvPss(vector<string>);
 		void		   setCmd(string);
         /****************************/
+        /*        [OPERATORS]       */
+        bool operator==(Client &obj) {return this->ClntFd == obj.ClntFd;}
+		/****************************/
 		bool		   ParsAndExec();
 		bool		   joinCommand(vector<string>);
 		bool		   SendPrvMsg(vector<string>);
+		bool		   Info(vector<string>);
 };

@@ -37,8 +37,8 @@ class Channel
         void    removeOperator(Client* const);
         void    removeInvited(Client* const);
 
-        vector <Client*> getMembers() const;
-        vector <Client*> getOperators() const;
+        vector <Client*> &getMembers() ;
+        vector <Client*> &getOperators() ;
 
         bool    isMember(Client* const) const;
         bool    isOperator(Client* const) const;
