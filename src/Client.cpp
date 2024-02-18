@@ -14,6 +14,7 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
     this->DoCmd["JOIN"] = static_cast<bool (Client::*)(vector<string>)>(&Client::joinCommand);
     this->DoCmd["PRIVMSG"] = static_cast<bool (Client::*)(vector<string>)>(&Client::SendPrvMsg);
     this->DoCmd["INFO"] = static_cast<bool (Client::*)(vector<string>)>(&Client::Info);
+    this->DoCmd["QUIT"] = static_cast<bool (Client::*)(vector<string>)>(&Client::QuitServer);
     this->HstName = inet_ntoa(*ClntAddr);
 }
 
@@ -291,6 +292,12 @@ bool Client::Info(vector<string> cmd) {
             msg += channelMembers[j]->getNckName() + ((j+1 == channelMembers.size()) ? "]\n" : " | ");
     }
     send(this->ClntFd, msg.c_str(), msg.size(), 0);
+    return true;
+}
+
+bool    Client::QuitServer(vector<string> cmd) {
+    (void)cmd;
+    Server::getInstance()->RemoveClient(this->ClntFd);
     return true;
 }
 // bool		  Client::joinCommand(vector<string> cmd)
