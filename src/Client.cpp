@@ -278,7 +278,8 @@ bool Client::Info(vector<string> cmd) {
     (void)cmd;
     string msg =  "Channels:[";
     for (size_t i = 0; i < this->Chnls.size(); i++)
-        msg += this->Chnls[i] + ((i+1 == this->Chnls.size()) ? "]\n" : " | ");
+        msg += this->Chnls[i] + " | ";
+    msg += "]\n";
     for (size_t i = 0; i < this->Chnls.size(); i++) {
         msg += this->Chnls[i] + " Admine:[";
         map<string, Channel*> chnl = Server::getInstance()->getChannels();
