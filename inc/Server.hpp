@@ -43,6 +43,7 @@ class Server {
         Server() {}
         ~Server() {
             // free clients and channels
+            this->Channels.erase(this->Channels.begin(), this->Channels.end());
             delete Instance;
         }
         /*    [Server Actions]   */
