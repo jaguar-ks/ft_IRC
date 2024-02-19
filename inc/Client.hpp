@@ -51,6 +51,8 @@ class Client {
         /****************************/
         /*         [SETTERS]        */
 		void		   setCmd(string);
+		void		   setMsgDzeb(string rep) {this->Msg = rep;}
+
         /****************************/
         /*        [OPERATORS]       */
         bool operator==(Client &obj) {return this->ClntFd == obj.ClntFd;}
