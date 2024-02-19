@@ -1,5 +1,15 @@
 #include"Client.hpp"
 
+/**
+ * @brief Splits a string into multiple targets based on comma delimiter.
+ * 
+ * This function takes a string as input and splits it into multiple targets based on the comma delimiter.
+ * Each target is stored as a separate element in the returned vector.
+ * 
+ * @param str The input string to be split into targets.
+ * @return vector<string> A vector containing the individual targets.
+ */
+
 vector<string> getTargets(string str) {
     vector<string> trg;
     string tmp;
@@ -15,6 +25,20 @@ vector<string> getTargets(string str) {
     }
     return trg;
 }
+
+
+/**
+ * @brief Sends a private message to one or more recipients.
+ * 
+ * This function sends a private message to one or more recipients. It checks if the client is registered
+ * and then determines whether the message is intended for a channel or a specific client. If the message
+ * is intended for a channel, it checks if the channel exists and if the client is a member of the channel.
+ * If both conditions are met, the message is sent to all other members of the channel. If the message is
+ * intended for a specific client, it checks if the client exists and sends the message directly to that client.
+ * 
+ * @param cmd The command containing the message and recipient(s).
+ * @return Returns true if the message was sent successfully, false otherwise.
+ */
 
 bool		  Client::SendPrvMsg(vector<string> cmd) {
     bool           rt = true;

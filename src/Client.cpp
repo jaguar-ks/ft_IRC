@@ -65,7 +65,7 @@ bool    Client::ParsAndExec() {
     stringstream tmp(this->Msg);
     this->Msg = "";
     while (!getline(tmp, this->Msg).eof()) {
-        this->Msg.pop_back();
+        this->Msg.erase(this->Msg.size()-1);
         this->setCmd(this->Msg);
         // for (size_t i = 0; i < this->Cmd.size(); i++)
         //     cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? " | " : "\n");
@@ -124,6 +124,15 @@ bool    Client::QuitServer(vector<string> cmd) {
     return true;
 }
 
+
+/**
+ * @brief Generates an error message with the given prefix and suffix, and sends it to the client.
+ * 
+ * @param Prefix The prefix of the error message.
+ * @param Sufix The suffix of the error message.
+ * @param Sender The client who will receive the error message.
+ */
+
 void    ErrorMsgGenrator(string const &Prefix, string const &Sufix, Client &Sender) {
     string msg = Prefix + ((Sender.getNckName().empty()) ? "*" : Sender.getNckName())
                 + Sufix + "\r\n";
@@ -131,6 +140,17 @@ void    ErrorMsgGenrator(string const &Prefix, string const &Sufix, Client &Send
     if (send(Sender.getClntFd(), msg.c_str(), msg.size(), 0) < 0)
         Server::getInstance()->RemoveClient(Sender.getClntFd());
 }
+
+
+/**
+ * @brief Sends a message from one client to another.
+ * 
+ * @param Sender The client sending the message.
+ * @param Reciver The client receiving the message.
+ * @param Cmd The command associated with the message.
+ * @param Msg The content of the message.
+ * @param Trg The target of the message.
+ */
 
 void    SendMsg(Client &Sender, Client &Reciver, string const &Cmd, string const &Msg, string const &Trg) {
     string msg = ":" + Sender.getNckName() + "!~" + Sender.getRlName()
