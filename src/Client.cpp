@@ -119,8 +119,21 @@ bool Client::Info(vector<string> cmd) {
 }
 
 bool    Client::QuitServer(vector<string> cmd) {
-    (void)cmd;
-    Server::getInstance()->RemoveClient(this->ClntFd);
+    vector<Client> Friends;
+
+    if (cmd.size() == 1)
+        cmd.push_back("");
+    for (size_t i = 0; i < this->Chnls.size(); i++) {
+        vector<Client *> tmp = Server::getInstance()->getChannels()[this->Chnls[i]]->getMembers();
+        for (size_t j = 0; j < tmp.size(); j++) {
+            if ((!Friends.empty() || !VcFind(Friends, *tmp[j])) && tmp[j] != this)
+                Friends.push_back(*tmp[j]);
+        }
+    }
+    for (size_t i = 0; i < Friends.size(); i++)
+        SendMsg(*this, Friends[i], cmd[0], ":"+cmd[cmd.size()-1], ":QUIT:");
+    // Server::getInstance()->RemoveClient(this->ClntFd);
+    close(this->ClntFd);
     return true;
 }
 
