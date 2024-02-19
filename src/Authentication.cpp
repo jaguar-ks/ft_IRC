@@ -26,6 +26,7 @@ bool    Client::setNckName(vector<string> cmd)
             if (i != cmd[1].size())
                 ErrorMsgGenrator(":ircserv 432 ", " :Erroneus nickname", *this);
             else {
+				// cout << "NICKNAME: " << cmd[1] << endl;
                 map<int, Client> Clnts = Server::getInstance()->getClients();
                 map<int, Client>::iterator it = Clnts.begin();
                 for (; it != Clnts.end(); it++)

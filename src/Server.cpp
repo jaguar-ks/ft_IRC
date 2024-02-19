@@ -2,6 +2,13 @@
 
 Server *Server::Instance = NULL;
 
+std::string	localTime(time_t now)
+{
+	std::string t = ctime(&now);
+	t.erase(t.length() - 1);
+	return (t);
+}
+
 bool isdigit_b(int c) {return isdigit(c);}
 
 /*
@@ -66,6 +73,7 @@ Server *Server::InstanceServer(string &port, string &psw) {
         Instance->ClFds.push_back(pollfd());
         Instance->ClFds.back().fd = Instance->SockFd;
         Instance->ClFds.back().events = POLLIN;
+		Instance->LocalTime = localTime(time(0));
     }
     return Instance;
 }
@@ -129,6 +137,29 @@ bool Server::JoinServer() {
     return true;
 }
 
+/// @brief shank the recieve buffer into lines and feed them to the client as separeted messages cmd
+/// @param Clnt Client Instance
+/// @param buffer to be shanked
+/// @return status of the parsing
+bool	BufferFeed(Client &Clnt, string &buffer)
+{
+	bool			parsed;
+	stringstream	feed(buffer);	
+	string			tmp;
+
+	while (getline(feed, tmp, '\n'))
+	{
+		if (feed.eof() && tmp.empty())
+			break;
+		if (tmp.size() && tmp[tmp.size() - 1] == '\r')
+				tmp.erase(tmp.size() - 1);
+		Clnt.setMsgDzeb(tmp);
+		parsed = Clnt.ParsAndExec();
+		tmp.clear();
+	}
+	return parsed;
+}
+
 /*
     Taking the incomming message form
     the client and and behaving acordding
@@ -141,18 +172,46 @@ bool Server::ReplyToClient(Client &Clnt) {
     int val = recv(Clnt.getClntFd(), Buff, 3000, 0);
     if (val > 0 && strlen(Buff)) {
         string Msg(Buff);
-        Clnt.getMsg() += Msg;
-        if (Clnt.getMsg().size() < 2 || Clnt.getMsg().substr(Clnt.getMsg().size()-2) != "\r\n")
+        // Clnt.getMsg() += Msg;
+	cout << "val: " << Msg << "{}" << endl;
+        if (Msg.size() < 2)
             return true;
-        // Clnt.getMsg().erase(Clnt.getMsg().size() - 2);
-        Clnt.getMsg().erase(0, Clnt.getMsg().find_first_not_of(" \t\n\v\f\r"));
-        cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Clnt.getMsg() << endl;
-        return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
+        // Msg.erase(Clnt.getMsg().size() - 2);
+        Msg.erase(0, Msg.find_first_not_of(" \t\n\v\f\r"));
+        cout << Msg << endl;
+		// cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Msg << endl;
+		return BufferFeed(Clnt, Msg);
+			// return Clnt.ParsAndExec();
+        // return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
     }
-    cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
+	cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
     this->RemoveClient(Clnt.getClntFd());
     return false;
 }
+/*
+    Taking the incomming message form
+    the client and and behaving acordding
+    to what does he sent otherwise an error
+    discribing the problem is printed
+*/
+// bool Server::ReplyToClient(Client &Clnt) {
+//     char    Buff[3000];
+//     memset(Buff, 0, 3000);
+//     int val = recv(Clnt.getClntFd(), Buff, 3000, 0);
+//     if (val > 0 && strlen(Buff)) {
+//         string Msg(Buff);
+//         Clnt.getMsg() += Msg;
+//         if (Clnt.getMsg().size() < 2 || Clnt.getMsg().substr(Clnt.getMsg().size()-2) != "\r\n")
+//             return true;
+//         // Clnt.getMsg().erase(Clnt.getMsg().size() - 2);
+//         Clnt.getMsg().erase(0, Clnt.getMsg().find_first_not_of(" \t\n\v\f\r"));
+//         cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Clnt.getMsg() << endl;
+//         return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
+//     }
+//     cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
+//     this->RemoveClient(Clnt.getClntFd());
+//     return false;
+// }
 
 void    Server::RemoveClient(int fd) {
     for (size_t i = 0; i < this->ClFds.size(); i++) {
@@ -204,3 +263,34 @@ void VcRemove(vector<T> &vc, T trg) {
 //             return true;
 //     return false;
 // }
+
+void	Server::BroadCastMsg( const Client& reciever, const stringstream& msg ) const
+{
+	short	nByte = send(reciever.getClntFd(), msg.str().c_str(), msg.str().size(), 0);
+	if (nByte == -1)
+		cerr << RED << "[ Error ] BroadCastMsg Function " << strerror(errno) << C_CLS << endl;
+	
+}
+
+void	Server::RegistMsgReply(const Client& u)
+{
+	cout << "ok" << endl;
+	stringstream	wMsg;
+		// RPL_WELCOME
+	const string&	nickName = u.getNckName();
+	wMsg << GRN << ":" << "<servername> 001 " << nickName 
+	<< " : Welcome to the Internet Relay Network" << "\r\n";
+		// RPL_YOURHOST
+	wMsg <<":" << "<servername> 002 " << nickName 
+	<< " : Your host is <servername>, running version <version> " << "\r\n";
+		// RPL_CREATED
+	wMsg << ":" << "<servername> 003 " << nickName 
+	<< " :This <servername> server was created " << Server::Instance->LocalTime << "\r\n";
+		// RPL_MYINFO
+	// <available umodes>: List of available user modes.
+	// <available cmodes>: List of available channel modes.
+	wMsg << ":" << "server 004 " << nickName 
+	<< " <servername>" << " <version> " << "<available umodes>" 
+	<< " <available cmodes>" << C_CLS << "\r\n";
+	Server::Instance->BroadCastMsg(u, wMsg);
+}
