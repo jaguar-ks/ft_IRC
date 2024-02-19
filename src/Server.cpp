@@ -134,15 +134,22 @@ bool Server::JoinServer() {
     return true;
 }
 
+/// @brief shank the recieve buffer into lines and feed them to the client as separeted messages cmd
+/// @param Clnt Client Instance
+/// @param buffer to be shanked
+/// @return status of the parsing
 bool	BufferFeed(Client &Clnt, string &buffer)
 {
 	bool			parsed;
 	stringstream	feed(buffer);	
 	string			tmp;
 
-	while (!getline(feed, tmp, '\n').eof())
+	while (getline(feed, tmp, '\n'))
 	{
-		tmp.erase(tmp.size() - 1);
+		if (feed.eof() && tmp.empty())
+			break;
+		if (tmp.size() && tmp[tmp.size() - 1] == '\r')
+				tmp.erase(tmp.size() - 1);
 		Clnt.setMsgDzeb(tmp);
 		parsed = Clnt.ParsAndExec();
 		tmp.clear();
@@ -160,16 +167,17 @@ bool Server::ReplyToClient(Client &Clnt) {
     char    Buff[3000];
     memset(Buff, 0, 3000);
     int val = recv(Clnt.getClntFd(), Buff, 3000, 0);
-	// cout << "val: " << Buff << "{}" << endl;
     if (val > 0 && strlen(Buff)) {
         string Msg(Buff);
         // Clnt.getMsg() += Msg;
-        if (Msg.size() < 2 || Msg.substr(Msg.size()-2) != "\r\n")
+	cout << "val: " << Msg << "{}" << endl;
+        if (Msg.size() < 2)
             return true;
-        // Clnt.getMsg().erase(Clnt.getMsg().size() - 2);
-        // Clnt.getMsg().erase(0, Clnt.getMsg().find_first_not_of(" \t\n\v\f\r"));
-        cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Msg << endl;
-		return (Msg.size()) ? BufferFeed(Clnt, Msg) : true;
+        // Msg.erase(Clnt.getMsg().size() - 2);
+        Msg.erase(0, Msg.find_first_not_of(" \t\n\v\f\r"));
+        cout << Msg << endl;
+		// cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Msg << endl;
+		return BufferFeed(Clnt, Msg);
 			// return Clnt.ParsAndExec();
         // return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
     }
@@ -191,6 +199,7 @@ void	Server::BroadCastMsg( const Client& reciever, const stringstream& msg ) con
 		cerr << RED << "[ Error ] BroadCastMsg Function " << strerror(errno) << C_CLS << endl;
 	
 }
+
 void	Server::RegistMsgReply(const Client& u)
 {
 	cout << "ok" << endl;

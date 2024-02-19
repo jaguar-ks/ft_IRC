@@ -48,6 +48,7 @@ class Bot
 		int				getBotType() const;
 		void			setSocketFd(int fd) { _fd = fd; }
 		bool			autoRegister( std::string );
+		void			botReply(std::string);
 		// virtual void		joinChannel( const Channel& ) = 0;
 		virtual void		connectToServer() = 0;
 		virtual ~Bot();

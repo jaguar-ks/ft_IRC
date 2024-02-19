@@ -22,8 +22,11 @@ int main()
 		else
 		{
 			buf[nbytes] = '\0';
-			std::cerr << buf << std::endl;
+			btc.botReply(buf);
+			// std::cerr << buf << std::endl;
 		}
 	}
 	return 0;
 }
+
+//prive message

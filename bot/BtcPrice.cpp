@@ -43,7 +43,7 @@ void		BtcPrice::connectToServer()
 	}
 	freeaddrinfo(servinfo);
 	this->setSocketFd(sockFd);
-	std::cout << ":<servername> "<< this->getName() << " has joined the server" << std::endl;
+	// std::cout << ":<servername> "<< this->getName() << " has joined the server" << std::endl;
 }
 
 BtcPrice::~BtcPrice() {}

@@ -59,8 +59,8 @@ bool    Client::ParsAndExec() {
     bool rt;
 	// cout << "msg from ParseAndExec: " << this->Msg << endl;
     this->setCmd(this->Msg);
-    // for (size_t i = 0; i < this->Cmd.size(); i++)
-    //     cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? "|" : "\n");
+    for (size_t i = 0; i < this->Cmd.size(); i++)
+        cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? "|" : "\n");
     for (size_t i = 0; i < this->Cmd[0].size(); i++)
         if (isalpha(this->Cmd[0][i]) && islower(this->Cmd[0][i]))
             this->Cmd[0][i] = toupper(this->Cmd[0][i]);
@@ -239,6 +239,7 @@ bool		  Client::SendPrvMsg(vector<string> cmd) {
                     if (it->second->NckName == targets[i])
                         break ;
                 if (it != Server::getInstance()->getClients().end()) {
+					
                     msg = ":" + this->NckName + "!~" + this->RlName
                             + "@" + this->HstName + " " + cmd[0] + " "
                             + targets[i] + " :" + cmd[2] + "\r\n";
