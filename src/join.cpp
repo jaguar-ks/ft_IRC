@@ -4,6 +4,8 @@
 
 static bool is_channel(string channel)
 {
+    if (channel.size() == 1 && channel[0] == '0')
+        return (true);
     if (channel.size() < 2 || channel.size() > 51 || channel[0] != '#')
         return (false);
     channel.erase(0, 1);
@@ -59,8 +61,25 @@ bool    Client::joinCommand(vector<string> join)
     while (!channels.empty())
     {
         map<string, Channel*>                &Channels =  Server::getInstance()->getChannels();
+        map<string, Channel*>::iterator      search   =  Channels.find(channels.front());
 
-        
+
+        if (channels.front().size() == 1 && channels.front()[0] == '0')
+        {
+            for (size_t i = 0; i < this->Chnls.size(); i++)
+            {
+                msg = ":" + this->NckName+ "!" + this->UsrName + "@" + this->HstName + " PART " + this->Chnls[i] + "\r\n";
+                for (size_t j = 0; j < Channels.find(this->Chnls[i])->second->getMembers().size(); j++)
+                    send(Channels.find(this->Chnls[i])->second->getMembers()[j]->getClntFd(), msg.c_str(), msg.size(), 0);
+                Channels[this->Chnls[i]]->removeMember(this);
+                Channels[this->Chnls[i]]->removeOperator(this);
+                Channels[this->Chnls[i]]->removeInvited(this);
+            }
+            this->Chnls.clear();
+            channels.pop();
+            msg = "";
+            continue;
+        }
         if (!Channels.count(channels.front()))
         {
             Channel *chnl = new Channel(this, channels.front());
@@ -75,7 +94,6 @@ bool    Client::joinCommand(vector<string> join)
         }
         else
         {
-            map<string, Channel*>::iterator      search   =  Channels.find(channels.front());
 
             if (search->second->isLocked())
             {
