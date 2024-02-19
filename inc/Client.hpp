@@ -20,6 +20,7 @@ using namespace std;
 
 class Server;
 
+
 class Client {
 	private:
 		string  	                           SrvPss;     // User Name
@@ -45,6 +46,7 @@ class Client {
 		const string   &getNckName(void) const {return this->NckName;}
 		string         &getMsg(void) {return this->Msg;}
 		const string   &getHstName(void) const {return this->HstName;}
+		const string   &getRlName(void) const {return this->RlName;}
 		vector<string> &getChnls(void) {return this->Chnls;}
         /****************************/
         /*         [SETTERS]        */
@@ -64,3 +66,6 @@ class Client {
 		bool		   QuitServer(vector<string>);
 		/****************************/
 };
+
+void    ErrorMsgGenrator(string const &Prefix, string const &Sufix, Client &Sender);
+void	SendMsg(Client &Sender, Client &Reciver, string const &Cmd, string const &Msg, string const &Trg);

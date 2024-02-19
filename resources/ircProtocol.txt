@@ -1,1 +1,2 @@
 https://dd.ircdocs.horse
+irc.quakenet.org
