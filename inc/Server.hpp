@@ -42,8 +42,8 @@ class Server {
     public:
         Server() {}
         ~Server() {
-            for (map<int, Channel*>::iterator it = this->Channels.begin(); it != this->Channels.end(); it++)
-                delete it->second;
+            // for (map<int, Channel*>::iterator it = this->Channels.begin(); it != this->Channels.end(); it++)
+                // delete it->second;
             // free Channels and channels
             delete Instance;
         }

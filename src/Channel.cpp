@@ -87,6 +87,10 @@ void    Channel::removeOperator(Client* const op)
             if ((*it)->getClntFd() == op->getClntFd())
             {
                 this->operators.erase(it);
+                if (this->operators.empty())
+                {
+                    this->autoAssignAdmin();
+                }
                 break;
             }
         }
@@ -202,7 +206,6 @@ void    Channel::autoAssignAdmin()
         if (members.size() > 0)
         {
             this->addOperator(this->members[0]);
-            // this->removeMember(this->members[0]);
         }
         else
         {
