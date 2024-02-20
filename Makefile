@@ -17,7 +17,7 @@ $(NAME) : $(OBJ)
 
 $(OBJ_DIR)/%.o : src/%.cpp $(INC_DIR)
 	mkdir -p $(OBJ_DIR)
-	c++ $(FLGS) -I$(INC_DIR) -c $< -o $@
+	c++ $(FLGS) -lcurl -I$(INC_DIR) -c $< -o $@
 
 clean :
 	rm -rf $(OBJ_DIR)

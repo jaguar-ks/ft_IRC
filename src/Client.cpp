@@ -21,7 +21,7 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
 
 bool	Client::btcPrice(vector<string> cmd) {
 	
-	if (cmd.size() == 1)
+	if (cmd.size() == 1 && cmd[0] == "BTCPRICE")
 	{
 		map<int, Client>::iterator it = Server::getInstance()->getClients().begin();
 		map<int, Client>::iterator ite = Server::getInstance()->getClients().end();
@@ -29,43 +29,12 @@ bool	Client::btcPrice(vector<string> cmd) {
 			if (it->second.getNckName() == "btcPrice")
 				break;
 		if (it != ite)
-		{
-			std::string msg = "BTC Price: ";
-			std::string url = "https://api.coindesk.com/v1/bpi/currentprice.json";
-			std::string response = "";
-
-			CURL* curl = curl_easy_init();
-			if (curl) {
-				curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-				curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, [](char* ptr, size_t size, size_t nmemb, std::string* data) {
-					data->append(ptr, size * nmemb);
-					return size * nmemb;
-				});
-				curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-				CURLcode res = curl_easy_perform(curl);
-				if (res != CURLE_OK) {
-					response = "Error: Failed to get BTC price";
-				}
-				curl_easy_cleanup(curl);
-			} else {
-				response = "Error: Failed to initialize curl";
-			}
-			cout << "BTCPRICE: " << response << endl;
-			SendMsg(*this, it->second, cmd[0], "", "");
-			return false;
-		}
+			SendMsg(*this, it->second, cmd[0], "BTC Price: ", ":BTCPRICE:");
 		else
 			cerr << "BTCPRICE BOT is currently out of service" << endl;
 		return true;
-
-		// ...
-
-
-		msg += response;
-		send(this->ClntFd, msg.c_str(), msg.size(), 0);
-		return true;
 	}
-	cerr << "BTCPRICE: Invalid number of arguments" << endl;
+	cerr << "BTCPRICE: Invalid command forma" << endl;
 	return false;
 }
 
