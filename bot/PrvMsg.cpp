@@ -5,7 +5,7 @@ PrvMsg::PrvMsg(std::string host, std::string port, BotType type)
 
 PrvMsg::~PrvMsg() {}
 
-PrvMsg::PrvMsg( const PrvMsg& ) {}
+// PrvMsg::PrvMsg( const PrvMsg& ) {}
 
 PrvMsg& PrvMsg::operator=( const PrvMsg& ) { return *this; }
 
@@ -18,10 +18,10 @@ void	PrvMsg::botReply(std::string msg)
 		return;
 	msg.erase(msg.size() - 2);
 	ss >> nick >> cmd >> botName >> Msg;
-	if (cmd != "PRVMSG")
+	if (cmd != "ANONYMSG")
 		return;
 	nick = extractNick(msg);
-	std::string finalMsg = static_cast<std::string>("PRIVMSG") + " " + nick + " " + Msg + "\r\n";
+	std::string finalMsg = static_cast<std::string>("PRIVMSG") + " " + botName + " " + Msg + "\r\n";
 	if ((sendBytes = send(this->getSocketFd(), finalMsg.c_str(), finalMsg.size(), 0)) <= 0)
 		if (sendBytes == 0)
 			std::cerr << "Connection closed" << std::endl;

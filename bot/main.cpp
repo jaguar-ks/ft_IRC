@@ -1,5 +1,5 @@
 #include "BtcPrice.hpp"
-
+#include "PrvMsg.hpp"
 int main(int ac, char **av)
 {
 	char buf[4096];
@@ -10,7 +10,7 @@ int main(int ac, char **av)
 		std::cerr << "Usage: " << av[0] << " <hostname> <port>" << std::endl;
 		exit(1);
 	}
-	BtcPrice btc(*(av + 1), *(av + 2),GETPRICE);
+	PrvMsg btc(*(av + 1), *(av + 2),GETPRICE);
 	sockFd = connectToServer(btc);
 	if (sockFd == -1)
 	{
@@ -36,7 +36,7 @@ int main(int ac, char **av)
 			if (!reg)
 			{
 				std::cerr << buf << std::endl;
-				reg = true;
+				// reg = true;
 			}	
 			btc.botReply(buf);
 			// std::cerr << buf << std::endl;

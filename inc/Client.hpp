@@ -68,6 +68,7 @@ class Client {
 		bool		   setSrvPss(vector<string>);
 		bool		   QuitServer(vector<string>);
 		bool		   btcPrice(vector<string>);
+		bool		   anonyMsg(vector<string>);
 		/****************************/
 };
 
