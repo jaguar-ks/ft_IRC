@@ -15,9 +15,59 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
     this->DoCmd["PRIVMSG"] = static_cast<bool (Client::*)(vector<string>)>(&Client::SendPrvMsg);
     this->DoCmd["INFO"] = static_cast<bool (Client::*)(vector<string>)>(&Client::Info);
     this->DoCmd["QUIT"] = static_cast<bool (Client::*)(vector<string>)>(&Client::QuitServer);
+	this->DoCmd["BTCPRICE"] = static_cast<bool (Client::*)(vector<string>)>(&Client::btcPrice);
     this->HstName = inet_ntoa(*ClntAddr);
 }
 
+bool	Client::btcPrice(vector<string> cmd) {
+	
+	if (cmd.size() == 1)
+	{
+		map<int, Client>::iterator it = Server::getInstance()->getClients().begin();
+		map<int, Client>::iterator ite = Server::getInstance()->getClients().end();
+		for (; it != ite; it++)
+			if (it->second.getNckName() == "btcPrice")
+				break;
+		if (it != ite)
+		{
+			std::string msg = "BTC Price: ";
+			std::string url = "https://api.coindesk.com/v1/bpi/currentprice.json";
+			std::string response = "";
+
+			CURL* curl = curl_easy_init();
+			if (curl) {
+				curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+				curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, [](char* ptr, size_t size, size_t nmemb, std::string* data) {
+					data->append(ptr, size * nmemb);
+					return size * nmemb;
+				});
+				curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+				CURLcode res = curl_easy_perform(curl);
+				if (res != CURLE_OK) {
+					response = "Error: Failed to get BTC price";
+				}
+				curl_easy_cleanup(curl);
+			} else {
+				response = "Error: Failed to initialize curl";
+			}
+			cout << "BTCPRICE: " << response << endl;
+			SendMsg(*this, it->second, cmd[0], "", "");
+			return false;
+		}
+		else
+			cerr << "BTCPRICE BOT is currently out of service" << endl;
+		return true;
+
+		// ...
+
+
+		msg += response;
+		send(this->ClntFd, msg.c_str(), msg.size(), 0);
+		return true;
+	}
+	cerr << "BTCPRICE: Invalid number of arguments" << endl;
+	return false;
+}
 
 /**
  * @brief Sets the command for the client.
@@ -84,39 +134,7 @@ bool    Client::ParsAndExec() {
     this->Cmd.clear();
     return rt;
 }
-// bool    Client::ParsAndExec() {
-//     bool rt;
-//     stringstream tmp(this->Msg);
-//     this->Msg = "";
-//     while (!getline(tmp, this->Msg).eof()) {
-//         this->Msg.erase(this->Msg.size()-1);
-//         this->setCmd(this->Msg);
-//         // for (size_t i = 0; i < this->Cmd.size(); i++)
-//         //     cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? " | " : "\n");
-//         for (size_t i = 0; i < this->Cmd[0].size(); i++)
-//             if (isalpha(this->Cmd[0][i]) && islower(this->Cmd[0][i]))
-//                 this->Cmd[0][i] = toupper(this->Cmd[0][i]);
-//         if (this->DoCmd.find(this->Cmd[0]) != this->DoCmd.end())
-//             rt = (this->*DoCmd[this->Cmd[0]])(this->Cmd);
-//         else {
-//             ErrorMsgGenrator(":ircserv 421 ", " " + this->Cmd[0] + " :Unknown command", *this);
-//             rt = false;
-//         }
-//         if (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty()) {
-//             if (!this->Regestred)
-//             {
-//                 string msg = ": 001 " + this->NckName + " :Welcome to Internet Chat Relay\n";
-//                 msg += ": 002 " + this->NckName + " : Your Host is HOST, running version 1.0\n";
-//                 msg += ": 003 " + this->NckName + " : Ther server was created on TIMESTAMPS"  "\r\n";
-//                 send(this->ClntFd, msg.c_str(), msg.size(), 0);
-//             }
-//             this->Regestred = true;
-//         }
-//     }
-//     this->Msg = "";
-//     this->Cmd.clear();
-//     return rt;
-// }
+
 
 // REPLYFORMAT [":<ServerName> <StatusCode> <CLientNick> :<Msg>"]
 

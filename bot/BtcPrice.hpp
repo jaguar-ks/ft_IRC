@@ -13,6 +13,7 @@ class BtcPrice : public Bot
 		// std::map<std::string, Channel*>	_channels;
 	public:
 		BtcPrice(std::string name, BotType type);
+		void	botReply(std::string msg);
 		// void		joinChannel( const Channel& );
 		void		connectToServer();
 		~BtcPrice();

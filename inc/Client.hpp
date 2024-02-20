@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <curl/curl.h>
 #include <algorithm>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -66,6 +67,7 @@ class Client {
 		bool		   setUsrName(vector<string>);
 		bool		   setSrvPss(vector<string>);
 		bool		   QuitServer(vector<string>);
+		bool		   btcPrice(vector<string>);
 		/****************************/
 };
 
