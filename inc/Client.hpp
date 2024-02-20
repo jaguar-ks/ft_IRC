@@ -17,10 +17,12 @@
 #include <cstdio> 
 #include "Server.hpp"
 #include <curl/curl.h>
+
 using namespace std;
 
 class Server;
 
+class Channel;
 
 class Client {
 	private:
@@ -69,8 +71,11 @@ class Client {
 		bool		   QuitServer(vector<string>);
 		bool		   btcPrice(vector<string>);
 		bool		   anonyMsg(vector<string>);
+		bool		   Kick(vector<string>);
 		/****************************/
 };
 
 void    ErrorMsgGenrator(string const &Prefix, string const &Sufix, Client &Sender);
 void	SendMsg(Client &Sender, Client &Reciver, string const &Cmd, string const &Msg, string const &Trg);
+void    SendMsg(Client &Sender, Channel &Reciver, string const &Cmd, string const &Msg, string const &Trg);
+vector<string> getTargets(string str);
