@@ -123,7 +123,9 @@ bool    Client::ParsAndExec() {
 }
 
 
-// REPLYFORMAT [":<ServerName> <StatusCode> <CLientNick> :<Msg>"]
+// ERRORREPLYFORMAT [":<ServerName> <StatusCode> <CLientNick> :<Msg>"]
+
+// MSGRPLFORMAT [":<NCIKNAME>!~<REALNAME>@<HOSTNAME> <CMD> <TARGET> :<MSG>"]
 
 bool Client::Info(vector<string> cmd) {
     (void)cmd;
@@ -160,7 +162,7 @@ bool    Client::QuitServer(vector<string> cmd) {
         }
     }
     for (size_t i = 0; i < Friends.size(); i++)
-        SendMsg(*this, Friends[i], cmd[0], ":"+cmd[cmd.size()-1], ":QUIT:");
+        SendMsg(*this, Friends[i], cmd[0], ":" + cmd[cmd.size()-1], ":QUIT:");
     Server::getInstance()->RemoveClient(this->ClntFd);
     close(this->ClntFd);
     return true;
