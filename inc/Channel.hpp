@@ -47,6 +47,9 @@ class Channel
         void    setOperator(Client* const);
         void    unsetOperator(Client* const);
 
+        void    setTopicBool();
+
+
         void    kickUser(Client* constadmin, Client* constmember);
 
         void    setLimit(const size_t limit);
@@ -72,6 +75,8 @@ class Channel
         Channel(Client* const client, string name);
         ~Channel();
 
+
+        void   modeCommand(vector<string> arg, Client* const client);
         const string   &getName() const;        
 };
 #endif

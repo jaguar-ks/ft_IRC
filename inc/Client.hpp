@@ -20,7 +20,8 @@ using namespace std;
 
 class Server;
 
-class Client {
+class Client
+{
 	private:
 		string  	                           SrvPss;     // User Name
 		string  	                           UsrName;    // User Name
@@ -54,10 +55,13 @@ class Client {
 		void		   setCmd(string);
         /****************************/
         /*        [OPERATORS]       */
-        bool operator==(Client &obj) {return this->ClntFd == obj.ClntFd;}
+        bool operator==(const Client &obj) {return this->ClntFd == obj.ClntFd;}        
+        bool operator!=(const Client &obj) {return this->ClntFd != obj.ClntFd;}        
 		/****************************/
 		bool		   ParsAndExec();
+		bool		   modeCommand(vector<string>);
 		bool		   joinCommand(vector<string>);
+		bool		   InfoChannel(vector<string> cmd);
 		bool		   SendPrvMsg(vector<string>);
 		bool		   Info(vector<string>);
 };

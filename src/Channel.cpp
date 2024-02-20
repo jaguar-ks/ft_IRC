@@ -224,9 +224,13 @@ void    Channel::setLimit(const size_t limit)
     this->limit = limit;
 }
 
-void    Channel::setTopic(const std::string topic)
+void    Channel::setTopicBool()
 {
     this->privelege.topic = true;
+}
+
+void    Channel::setTopic(const std::string topic)
+{
     this->topic = topic;
 }
 

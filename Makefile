@@ -1,4 +1,4 @@
-SRC = src/main.cpp src/Server.cpp src/Client.cpp src/Channel.cpp src/join.cpp
+SRC = src/main.cpp src/Server.cpp src/Client.cpp src/Channel.cpp src/join.cpp src/mode.cpp
 
 OBJ_DIR = obj
 
