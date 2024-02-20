@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <curl/curl.h>
 #include <algorithm>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -15,8 +14,9 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <sstream>
+#include <cstdio> 
 #include "Server.hpp"
-
+#include <curl/curl.h>
 using namespace std;
 
 class Server;

@@ -20,6 +20,8 @@
 #include <cerrno>
 #include <arpa/inet.h>
 #include <sstream>
+#include <curl/curl.h>
+# define BTCAPI "https://api.coindesk.com/v1/bpi/currentprice.json"
 # define _OPTIMAL 5
 typedef enum
 {
@@ -40,7 +42,7 @@ class Bot
 		Bot& operator=( const Bot& );
 		Bot();
 	public:
-		Bot(std::string name, BotType type);
+		Bot(std::string name, std::string host, std::string port, BotType type);
 		std::string		getName() const;
 		const std::string&		getPort() const;
 		const std::string&		getHostName() const;
@@ -48,11 +50,12 @@ class Bot
 		int				getBotType() const;
 		void			setSocketFd(int fd) { _fd = fd; }
 		bool			autoRegister( std::string );
-		void			botReply(std::string);
-		// virtual void		joinChannel( const Channel& ) = 0;
-		virtual void		connectToServer() = 0;
+		virtual void			botReply(std::string) = 0;
+		std::string			extractCmd(std::string&);
+		std::string			extractNick(std::string&);
 		virtual ~Bot();
 };
 
 
+int16_t		connectToServer(Bot& bot);
 #endif

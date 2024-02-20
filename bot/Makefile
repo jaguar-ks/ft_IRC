@@ -6,7 +6,7 @@
 #    By: aelbrahm <aelbrahm@student.1337.ma>        +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/02/03 15:57:19 by aelbrahm          #+#    #+#              #
-#    Updated: 2024/02/16 17:56:42 by aelbrahm         ###   ########.fr        #
+#    Updated: 2024/02/19 23:52:36 by aelbrahm         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -41,14 +41,14 @@ HEADRES = Bot.hpp BtcPrice.hpp
 all : $(NAME)
 
 $(NAME) : $(DIR) $(OBJS)
-		$(CC) $(FLAGS) $(OBJS) -o $(NAME)
+		$(CC) $(FLAGS)  $(OBJS) -o $(NAME) -lcurl
 
 $(DIR) :
 		mkdir -p $(DIR)
 
 obj/%.o : %.cpp $(HEADRES)
 		@printf "|[ $(GRN)%-37s$(C_CLS)$(YLW) ]| \r" "Compailing... $(notdir $@)"
-		@$(CC) $(FLAGS) -c $< -o $@
+		@$(CC) $(FLAGS) -c -lcurl $< -o $@
 
 clean :
 		$(RM) obj

@@ -1,12 +1,24 @@
 #include "BtcPrice.hpp"
 
-int main()
+int main(int ac, char **av)
 {
 	char buf[4096];
 	int nbytes;
-	BtcPrice btc("btcPrice", GETPRICE);
-	btc.connectToServer();
+	int16_t sockFd;
+	if (ac != 3)
+	{
+		std::cerr << "Usage: " << av[0] << " <hostname> <port>" << std::endl;
+		exit(1);
+	}
+	BtcPrice btc(*(av + 1), *(av + 2),GETPRICE);
+	sockFd = connectToServer(btc);
+	if (sockFd == -1)
+	{
+		std::cerr << "Connection failed" << std::endl;
+		exit(1);
+	}
 	int alo = btc.autoRegister("123");
+	bool reg = false;
 	while (1)
 	{
 		memset(buf, 0, sizeof(buf));
@@ -21,7 +33,11 @@ int main()
 		}
 		else
 		{
-			buf[nbytes] = '\0';
+			if (!reg)
+			{
+				std::cerr << buf << std::endl;
+				reg = true;
+			}	
 			btc.botReply(buf);
 			// std::cerr << buf << std::endl;
 		}
