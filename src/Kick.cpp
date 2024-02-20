@@ -8,6 +8,8 @@
  */
 
 bool    Client::Kick(vector<string> cmd) {
+    for (size_t i = 0; i < cmd.size(); i++)
+        cout << "[" + cmd[i] + "]" << endl;
     if (cmd.size() == 3) {
         if (Server::getInstance()->getChannels().find(cmd[1]) != Server::getInstance()->getChannels().end()) {
             if (VcFind(this->Chnls, cmd[1])) {
