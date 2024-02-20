@@ -6,7 +6,7 @@ OBJ = $(patsubst %, $(OBJ_DIR)/%, $(notdir $(SRC:.cpp=.o)))
 
 INC_DIR = inc
 
-FLGS = -Wall -Wextra -Werror -fsanitize=address -std=c++98
+FLGS = -Wall -Wextra -Werror -std=c++98 #-fsanitize=address
 
 NAME = ircserv
 
@@ -17,7 +17,7 @@ $(NAME) : $(OBJ)
 
 $(OBJ_DIR)/%.o : src/%.cpp $(INC_DIR)
 	mkdir -p $(OBJ_DIR)
-	c++ $(FLGS) -lcurl -I$(INC_DIR) -c $< -o $@
+	c++ $(FLGS) -I$(INC_DIR) -c $< -o $@
 
 clean :
 	rm -rf $(OBJ_DIR)
