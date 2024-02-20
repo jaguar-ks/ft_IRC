@@ -157,37 +157,10 @@ bool	BufferFeed(Client &Clnt, string &buffer)
 		parsed = Clnt.ParsAndExec();
 		tmp.clear();
 	}
+    buffer = "";
 	return parsed;
 }
 
-/*
-    Taking the incomming message form
-    the client and and behaving acordding
-    to what does he sent otherwise an error
-    discribing the problem is printed
-*/
-// bool Server::ReplyToClient(Client &Clnt) {
-//     char    Buff[3000];
-//     memset(Buff, 0, 3000);
-//     int val = recv(Clnt.getClntFd(), Buff, 3000, 0);
-//     if (val > 0 && strlen(Buff)) {
-//         string Msg(Buff);
-//         // Clnt.getMsg() += Msg;
-// 	    cout << "val: " << Msg << "{}" << endl;
-//         if (Msg.size() < 2)
-//             return true;
-//         // Msg.erase(Clnt.getMsg().size() - 2);
-//         Msg.erase(0, Msg.find_first_not_of(" \t\n\v\f\r"));
-//         cout << Msg << endl;
-// 		// cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Msg << endl;
-// 		return BufferFeed(Clnt, Msg);
-// 			// return Clnt.ParsAndExec();
-//         // return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
-//     }
-// 	cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
-//     this->RemoveClient(Clnt.getClntFd());
-//     return false;
-// }
 /*
     Taking the incomming message form
     the client and and behaving acordding
@@ -200,18 +173,46 @@ bool Server::ReplyToClient(Client &Clnt) {
     int val = recv(Clnt.getClntFd(), Buff, 3000, 0);
     if (val > 0 && strlen(Buff)) {
         string Msg(Buff);
-        Clnt.getMsg() += Msg;
-        if (Clnt.getMsg().find('\n') == string::npos)
+        Clnt.getBff() += Msg;
+	    cout << "val: " << Msg << "{}" << endl;
+        if (Clnt.getBff().find('\n') == string::npos)
             return true;
-        // Clnt.getMsg().erase(Clnt.getMsg().size() - 2);
-        Clnt.getMsg().erase(0, Clnt.getMsg().find_first_not_of(" \t\n\v\f\r"));
-        cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Clnt.getMsg() << endl;
-        return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
+        // Msg.erase(Clnt.getMsg().size() - 2);
+        Msg.erase(0, Msg.find_first_not_of(" \t\n\v\f\r"));
+        cout << Msg << endl;
+		// cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Msg << endl;
+		return BufferFeed(Clnt, Clnt.getBff());
+			// return Clnt.ParsAndExec();
+        // return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
     }
-    cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
+	cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
     this->RemoveClient(Clnt.getClntFd());
     return false;
 }
+/*
+    Taking the incomming message form
+    the client and and behaving acordding
+    to what does he sent otherwise an error
+    discribing the problem is printed
+*/
+// bool Server::ReplyToClient(Client &Clnt) {
+//     char    Buff[3000];
+//     memset(Buff, 0, 3000);
+//     int val = recv(Clnt.getClntFd(), Buff, 3000, 0);
+//     if (val > 0 && strlen(Buff)) {
+//         string Msg(Buff);
+//         Clnt.getMsg() += Msg;
+//         if (Clnt.getMsg().find('\n') == string::npos)
+//             return true;
+//         // Clnt.getMsg().erase(Clnt.getMsg().size() - 2);
+//         Clnt.getMsg().erase(0, Clnt.getMsg().find_first_not_of(" \t\n\v\f\r"));
+//         cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Clnt.getMsg() << endl;
+//         return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
+//     }
+//     cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
+//     this->RemoveClient(Clnt.getClntFd());
+//     return false;
+// }
 
 void    Server::RemoveClient(int fd) {
     for (size_t i = 0; i < this->ClFds.size(); i++) {
