@@ -72,7 +72,7 @@ bool		  Client::setUsrName(vector<string> cmd)
             ErrorMsgGenrator(":ircserv 462 ", " :You may not reregister", *this);
     }
     else
-        ErrorMsgGenrator(":ircserv 461 ", " :Not enough parameters", *this);
+        ErrorMsgGenrator(":ircserv 461 ", " " + cmd[0] +" :Not enough parameters", *this);
     return (false);
 }
 
@@ -104,6 +104,6 @@ bool		  Client::setSrvPss(vector<string> cmd)
             ErrorMsgGenrator(":ircserv 464 ", " :Password incorrect", *this);
     }
     else
-        ErrorMsgGenrator(":ircserv 461 ", " :Not enough parameters", *this);
+        ErrorMsgGenrator(":ircserv 461 ", " " + cmd[0] + " :Not enough parameters", *this);
     return (false);
 }

@@ -17,6 +17,7 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
     this->DoCmd["QUIT"] = static_cast<bool (Client::*)(vector<string>)>(&Client::QuitServer);
 	this->DoCmd["BTCPRICE"] = static_cast<bool (Client::*)(vector<string>)>(&Client::btcPrice);
 	this->DoCmd["ANONYMSG"] = static_cast<bool (Client::*)(vector<string>)>(&Client::anonyMsg);
+	this->DoCmd["KICK"] = static_cast<bool (Client::*)(vector<string>)>(&Client::Kick);
     this->HstName = inet_ntoa(*ClntAddr);
 }
 
@@ -203,3 +204,31 @@ void    SendMsg(Client &Sender, Client &Reciver, string const &Cmd, string const
     if (send(Reciver.getClntFd(), msg.c_str(), msg.size(), 0) < 0)
         Server::getInstance()->RemoveClient(Reciver.getClntFd());
 }
+
+
+/**
+ * @brief Sends a message from a client to a channel.
+ * 
+ * This function constructs a message string using the sender's nickname, real name, hostname,
+ * command, target, and message. It then sends the message to all members of the specified channel,
+ * except for the sender. If the send operation fails, the client is removed from the server.
+ * 
+ * @param Sender The client sending the message.
+ * @param Reciver The channel receiving the message.
+ * @param Cmd The command of the message.
+ * @param Msg The content of the message.
+ * @param Trg The target of the message.
+ */
+
+void    SendMsg(Client &Sender, Channel &Reciver, string const &Cmd, string const &Msg, string const &Trg) {
+    string msg = ":" + Sender.getNckName() + "!~" + Sender.getRlName()
+                + "@" + Sender.getHstName() + " " + Cmd + " " + Trg
+                + " :" + Msg + "\r\n";
+
+    for (size_t i = 0; i < Reciver.getMembers().size(); i++)
+        if (Sender.getClntFd() != Reciver.getMembers()[i]->getClntFd())
+            if (send(Reciver.getMembers()[i]->getClntFd(), msg.c_str(), msg.size(), 0) < 0)
+                Server::getInstance()->RemoveClient(Reciver.getMembers()[i]->getClntFd());
+}
+
+
