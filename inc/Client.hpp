@@ -32,6 +32,7 @@ class Client {
 		string  	                           RlName;        // Real Name
 		string  	                           HstName;       // Host Name or IP address of The ClientMachine
         string  	                           Msg;           // Client Messag
+        string  	                           bff;           // Client Messag
 		int     	                           ClntFd;        // The file discriptor of the Client Socket
         bool    	                           Regestred;     // True if Already registred to the server and False if not 
 		vector<string>                         Cmd;		      // Command Vector with the first element as the commad and the reset as the argument
@@ -48,6 +49,7 @@ class Client {
 		const string   &getUsrName(void) const {return this->UsrName;}
 		const string   &getNckName(void) const {return this->NckName;}
 		string         &getMsg(void) {return this->Msg;}
+		string         &getBff(void) {return this->bff;}
 		const string   &getHstName(void) const {return this->HstName;}
 		const string   &getRlName(void) const {return this->RlName;}
 		vector<string> &getChnls(void) {return this->Chnls;}
