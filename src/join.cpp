@@ -17,9 +17,7 @@ static bool is_channel(string channel)
 
 static void    joinParser(vector<string> join, queue<string> &channels, queue<string> &passwords, string &msg)
 {
-    join.erase(join.begin());
-
-    stringstream chnls(join[0]);
+    stringstream chnls(join[1]);
     string channel;
     while (getline(chnls, channel, ','))
     {
@@ -33,7 +31,7 @@ static void    joinParser(vector<string> join, queue<string> &channels, queue<st
         }
     }
     
-    stringstream pswds(join[1]);
+    stringstream pswds(join[2]);
     string password;
     while (getline(pswds, password, ','))
     {

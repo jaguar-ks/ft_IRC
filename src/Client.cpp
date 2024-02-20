@@ -70,19 +70,17 @@ bool	Client::btcPrice(vector<string> cmd) {
 
 void    Client::setCmd(string line) {
     string tmp;
-    size_t x = 0;
-    this->Cmd.push_back(string());
     for (size_t i = 0; i < line.size(); i++){
         if (line.at(i) == ':') {
-            this->Cmd[x] = line.substr(i+1);
+            tmp = line.substr(i+1);
             break ;
         }
         if (line.at(i) != ' ')
-            this->Cmd[x] += line.at(i);
-        else {
+            tmp += line.at(i);
+        if (line.at(i) == ' ' || i == line.size() - 1) {
             for (; i+1 < line.size() && line.at(i+1) == ' '; i++);
-            this->Cmd.push_back(string());
-            x++;
+            this->Cmd.push_back(tmp);
+            tmp = "";
         }
     }
 }
@@ -101,10 +99,7 @@ void    Client::setCmd(string line) {
 
 bool    Client::ParsAndExec() {
     bool rt;
-    // stringstream tmp(this->Msg);
-    // this->Msg = "";
-    // while (!getline(tmp, this->Msg).eof()) {
-    // this->Msg.erase(this->Msg.size()-1);
+
     this->setCmd(this->Msg);
     // for (size_t i = 0; i < this->Cmd.size(); i++)
     //     cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? " | " : "\n");
@@ -122,7 +117,6 @@ bool    Client::ParsAndExec() {
             Server::RegistMsgReply(*this);
         this->Regestred = true;
     }
-    // }
     this->Msg = "";
     this->Cmd.clear();
     return rt;
@@ -167,7 +161,7 @@ bool    Client::QuitServer(vector<string> cmd) {
     }
     for (size_t i = 0; i < Friends.size(); i++)
         SendMsg(*this, Friends[i], cmd[0], ":"+cmd[cmd.size()-1], ":QUIT:");
-    // Server::getInstance()->RemoveClient(this->ClntFd);
+    Server::getInstance()->RemoveClient(this->ClntFd);
     close(this->ClntFd);
     return true;
 }

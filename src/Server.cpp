@@ -147,14 +147,15 @@ bool	BufferFeed(Client &Clnt, string &buffer)
 	stringstream	feed(buffer);	
 	string			tmp;
 
-	while (getline(feed, tmp, '\n'))
+	while (getline(feed, tmp))
 	{
 		if (feed.eof() && tmp.empty())
 			break;
 		if (tmp.size() && tmp[tmp.size() - 1] == '\r')
-				tmp.erase(tmp.size() - 1);
+			tmp.erase(tmp.size() - 1);
 		Clnt.setMsgDzeb(tmp);
-		parsed = Clnt.ParsAndExec();
+		if (!Clnt.getMsg().empty())
+            parsed = Clnt.ParsAndExec();
 		tmp.clear();
 	}
     buffer = "";
@@ -174,7 +175,7 @@ bool Server::ReplyToClient(Client &Clnt) {
     if (val > 0 && strlen(Buff)) {
         string Msg(Buff);
         Clnt.getBff() += Msg;
-	    cout << "val: " << Msg << "{}" << endl;
+	    // cout << "val: " << Msg << "{}" << endl;
         if (Clnt.getBff().find('\n') == string::npos)
             return true;
         // Msg.erase(Clnt.getMsg().size() - 2);
