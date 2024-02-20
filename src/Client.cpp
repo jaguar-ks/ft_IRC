@@ -16,7 +16,26 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
     this->DoCmd["INFO"] = static_cast<bool (Client::*)(vector<string>)>(&Client::Info);
     this->DoCmd["QUIT"] = static_cast<bool (Client::*)(vector<string>)>(&Client::QuitServer);
 	this->DoCmd["BTCPRICE"] = static_cast<bool (Client::*)(vector<string>)>(&Client::btcPrice);
+	this->DoCmd["ANONYMSG"] = static_cast<bool (Client::*)(vector<string>)>(&Client::anonyMsg);
     this->HstName = inet_ntoa(*ClntAddr);
+}
+
+bool	Client::anonyMsg(vector<string> cmd)
+{
+	if (cmd.size() == 3)
+	{
+		cout << "here" << endl;
+		map<int, Client>::iterator it = Server::getInstance()->getClients().begin();
+		map<int, Client>::iterator ite = Server::getInstance()->getClients().end();
+		for (; it != ite; it++)
+			if (it->second.getNckName() == "AnonyMsg")
+				break;
+		if (it != ite)
+			SendMsg(*this, it->second, cmd[0], cmd[2], cmd[1]);
+		else
+			cerr << "ANONYMSG: Invalid Nickname" << endl;
+	}
+	return true;
 }
 
 bool	Client::btcPrice(vector<string> cmd) {
