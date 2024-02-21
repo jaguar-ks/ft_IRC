@@ -35,6 +35,64 @@ struct modes
     string topicStr;
 };
 
+enum replie
+{
+    OPERATOR_ADDED,
+    OPERATOR_REMOVED,
+    INVITE_ONLY_SET,
+    INVITE_ONLY_UNSET,
+    TOPIC_SET,
+    TOPIC_UNSET,
+    PASSWORD_SET,
+    PASSWORD_UNSET,
+    LIMIT_SET,
+    LIMIT_UNSET
+};
+
+void genericReplies(Channel* const channel, Client* const client, enum replie replie)
+{
+    vector<Client*>::iterator it =  channel->getMembers().begin();
+    vector<Client*>::iterator itend =  channel->getMembers().end();
+    string msg = ":"+client->getNckName()+"!~"+client->getUsrName()+"@"+client->getHstName()+" MODE "+channel->getName();
+    switch (replie)
+    {
+        case OPERATOR_ADDED:
+            msg += " +o "+(*it)->getNckName()+" \r\n";
+            break;
+        case OPERATOR_REMOVED:
+            msg += " -o "+(*it)->getNckName()+" \r\n";
+            break;
+        case INVITE_ONLY_SET:
+            msg += " +i \r\n";
+            break;
+        case INVITE_ONLY_UNSET:
+            msg += " -i \r\n";
+            break;
+        case TOPIC_SET:
+            msg += " +t \r\n";
+            break;
+        case TOPIC_UNSET:
+            msg += " -t \r\n";
+            break;
+        case PASSWORD_SET:
+            msg += " +k \r\n";
+            break;
+        case PASSWORD_UNSET:
+            msg += " -k \r\n";
+            break;
+        case LIMIT_SET:
+            msg += " +l \r\n";
+            break;
+        case LIMIT_UNSET:
+            msg += " -l \r\n";
+            break;
+    }
+    for (; it != itend; ++it)
+    {
+        send((*it)->getClntFd(), msg.c_str(), msg.size(), 0);
+    }
+}
+
 void    getOperations(vector<string> arg, queue<pair <bool, char> >   &modesQueue, string &msg)
 {
     for (size_t i = 0; i < arg[0].size(); i++)
@@ -65,8 +123,6 @@ void    getOperations(vector<string> arg, queue<pair <bool, char> >   &modesQueu
                             modesQueue.push(make_pair(true, 'l'));
                             break ;
                         default:
-                            msg += arg[0][j];
-                            msg += "\r\n";
                             msg += "IRC_SERVER 472 ERR_UNKNOWNMODE :Unknown mode charachter\r\n";
                             break ;
                     }
@@ -96,8 +152,6 @@ void    getOperations(vector<string> arg, queue<pair <bool, char> >   &modesQueu
                             modesQueue.push(make_pair(false, 'l'));
                             break ;
                         default:
-                            msg += arg[0][j];
-                            msg += "\r\n";
                             msg += "IRC_SERVER 472 ERR_UNKNOWNMODE :Unknown mode charachter\r\n";
                             break ;
                     }
@@ -105,8 +159,6 @@ void    getOperations(vector<string> arg, queue<pair <bool, char> >   &modesQueu
                 }
                 break ;
             default:
-                msg += arg[0][j];
-                msg += "\r\n";
                 msg += "IRC_SERVER 472 ERR_UNKNOWNMODE :Unknown mode charachter\r\n";
                 break ;
         }
@@ -115,18 +167,17 @@ void    getOperations(vector<string> arg, queue<pair <bool, char> >   &modesQueu
 
 void inviteOnlyController(Channel* const channel, Client* const client, string &msg, bool set)
 {
+    if (!channel->isOperator(client))
+    {
+        msg += ":"+client->getHstName()+" 482 "+client->getNckName()+" "+channel->getName()+" :You're not channel operator\r\n";
+        return ;
+    }
     if (set)
     {
         if (!channel->isInviteOnly())
         {
-            if (channel->isOperator(client))
-            {
-                channel->setIviteOnly();
-            }
-            else
-            {
-                msg += "IRC_SERVER 481 ERR_CHANOPRIVSNEEDED :You're not channel operator\r\n";
-            }
+            channel->setIviteOnly();
+            genericReplies(channel, client, INVITE_ONLY_SET);
         }
         else
         {
@@ -137,14 +188,8 @@ void inviteOnlyController(Channel* const channel, Client* const client, string &
     {
         if (channel->isInviteOnly())
         {
-            if (channel->isOperator(client))
-            {
-                channel->unsetInviteOnly();
-            }
-            else
-            {
-                msg += "IRC_SERVER 481 ERR_CHANOPRIVSNEEDED :You're not channel operator\r\n";
-            }
+            channel->unsetInviteOnly();
+            genericReplies(channel, client, INVITE_ONLY_UNSET);
         }
         else
         {
@@ -155,18 +200,17 @@ void inviteOnlyController(Channel* const channel, Client* const client, string &
 
 void topicController(Channel* const channel, Client* const client, string &msg, bool set)
 {
+    if (!channel->isOperator(client))
+    {
+        msg += ":"+client->getHstName()+" 482 "+client->getNckName()+" "+channel->getName()+" :You're not channel operator\r\n";
+        return ;
+    }
     if (set)
     {
         if (!channel->isTopic())
         {
-            if (channel->isOperator(client))
-            {
-                channel->setTopicBool();
-            }
-            else
-            {
-                msg += "IRC_SERVER 482 ERR_CHANOPRIVSNEEDED :You're not channel operator\r\n";
-            }
+            channel->setTopicBool();
+            genericReplies(channel, client, TOPIC_SET);
         }
         else
         {
@@ -177,14 +221,8 @@ void topicController(Channel* const channel, Client* const client, string &msg, 
     {
         if (channel->isTopic())
         {
-            if (channel->isOperator(client))
-            {
-                channel->unsetTopic();
-            }
-            else
-            {
-                msg += "IRC_SERVER  482 ERR_CHANOPRIVSNEEDED :You're not channel operator\r\n";
-            }
+            channel->unsetTopic();
+            genericReplies(channel, client, TOPIC_UNSET);
         }
         else
         {
@@ -195,22 +233,22 @@ void topicController(Channel* const channel, Client* const client, string &msg, 
 
 void    keyController(Channel* const channel, Client* const client, string &msg, bool set, size_t &index, vector<string> arg)
 {
+    if (!channel->isOperator(client))
+    {
+        msg += ":"+client->getHstName()+" 482 "+client->getNckName()+" "+channel->getName()+" :You're not channel operator\r\n";
+        return ;
+    }
+    if (++index >= arg.size())
+    {
+        msg += "IRC_SERVER 461 ERR_NEEDMOREPARAMS :Not enough parameters\r\n";
+        return ;
+    }
     if (set)
     {
-        if (++index >= arg.size())
-        {
-            msg += "IRC_SERVER 461 ERR_NEEDMOREPARAMS :Not enough parameters\r\n";
-        }
         if (!channel->isLocked())
         {
-            if (channel->isOperator(client))
-            {
-                channel->setPassword(arg[index]);
-            }
-            else
-            {
-                msg += "IRC_SERVER  482 ERR_CHANOPRIVSNEEDED :You're not channel operator\r\n";
-            }
+            channel->setPassword(string(arg[index]));
+            genericReplies(channel, client, PASSWORD_SET);
         }
         else
         {
@@ -221,14 +259,13 @@ void    keyController(Channel* const channel, Client* const client, string &msg,
     {
         if (channel->isLocked())
         {
-            if (channel->isOperator(client))
+            if (channel->getPassword() == arg[index])
             {
                 channel->unsetPassword();
+                genericReplies(channel, client, PASSWORD_UNSET);
             }
             else
-            {
-                msg += "IRC_SERVER  482 ERR_CHANOPRIVSNEEDED :You're not channel operator\r\n";
-            }
+                msg += "IRC_SERVER 475 ERR_BADCHANNELKEY :Wrong channel key\r\n";
         }
         else
         {
@@ -239,109 +276,95 @@ void    keyController(Channel* const channel, Client* const client, string &msg,
 
 void    operatorController(Channel* const channel, Client* const client, string &msg, bool set, size_t &index, vector<string> arg)
 {
-    Client op;
     if (++index >= arg.size())
     {
-        msg += "IRC_SERVER 461 ERR_NEEDMOREPARAMS :Not enough parameters\r\n";
+        msg += ":"+client->getHstName()+" 461 "+client->getNckName()+" MODE :Not enough parameters\r\n";
+        return ;
+    }
+    if (!channel->isOperator(client))
+    {
+        msg += ":"+client->getHstName()+" 482 "+client->getNckName()+" "+channel->getName()+" :You're not channel operator\r\n";
+        return ;
     }
     map<int, Client>::iterator it = Server::getInstance()->getClients().begin();
     map<int, Client>::iterator endit = Server::getInstance()->getClients().end();
     for (; it != endit; ++it)
     {
         if (it->second.getNckName() == arg[index])
-        {
-            op = it->second;
             break ;
-        }
     }
     if (it == endit)
     {
-        msg += "IRC_SERVER 441 ERR_USERNOTINCHANNEL " + arg[index] + " :They aren't on that channel\r\n";
+        msg += ": 401 ERR_NOSUCHNICK :No such nick\r\n";
     }
     if (set)
     {
-        if (!channel->isMember(&op))
+        if (!channel->isMember(&it->second))
         {
-            msg += "IRC_SERVER 441 ERR_USERNOTINCHANNEL " + arg[index] + " :They aren't on that channel\r\n";
+            msg += ": 401 ERR_NOSUCHNICK :No such nick\r\n";
         }
         else
         {
-            if (channel->isOperator(client))
+            if (!channel->isOperator(&it->second))
             {
-                if (!channel->isOperator(&op))
-                {
-                    channel->setOperator(&op);
-                }
-                else
-                {
-                    msg += "IRC_SERVER is already admin " + arg[index] + " :is an admin\r\n";
-                }
+                channel->setOperator(&it->second);
+                genericReplies(channel, client, OPERATOR_ADDED);
             }
             else
             {
-                msg += "IRC_SERVER 482 ERR_NOTOPERATOR " + arg[index] + " :You're not an admin\r\n";
+
+                msg += ":IRC_SERVER is already admin " + arg[index] + " :is an operator\r\n";
             }
         }
     }
     else
     {
-        if (channel->isOperator(client))
+        if (channel->isOperator(&it->second))
         {
-            if (channel->isOperator(&op))
-            {
-                channel->removeOperator(&op);
-            }
-            else
-            {
-                msg += "IRC_SERVER 482 ERR_NOTOPERATOR " + arg[index] + " :You're not an admin\r\n";
-            }
+            channel->removeOperator(&it->second);
+            genericReplies(channel, client, OPERATOR_REMOVED);
         }
         else
         {
-            msg += "IRC_SERVER 482 ERR_NOTOPERATOR " + arg[index] + " :You're not an admin\r\n";
+            msg += ": 482 MODE " + arg[index] + " : not channel operator\r\n";
         }
     }
 }
+
 void    limitController(Channel* const channel, Client* const client, string &msg, bool set, size_t &index, vector<string> arg)
 {
+    if (!channel->isOperator(client))
+    {
+        msg += ":"+client->getHstName()+" 482 "+client->getNckName()+" "+channel->getName()+" :You're not channel operator\r\n";
+    }
     if (set)
     {
         if (++index >= arg.size())
         {
-            msg += "IRC_SERVER 461 ERR_NEEDMOREPARAMS :Not enough parameters\r\n";
+            // msg += ":"+client->getHstName()+" 461 "+client->getNckName()+" MODE :Not enough parameters\r\n";
+            msg += ": 696 MODE : "+channel->getName()+" +l not enough parameters for limit mode\r\n";
+            return ;
         }
         if (!channel->isLimited())
         {
-            if (channel->isOperator(client))
-            {
-                channel->setLimit(atoll(arg[index].c_str()));
-            }
-            else
-            {
-                msg += "IRC_SERVER 482 ERR_CHANOPRIVSNEEDED :You're not channel operator\r\n";
-            }
+            channel->setLimit(atoll(arg[index].c_str()));
+            genericReplies(channel, client, LIMIT_SET);
         }
         else
         {
-            msg += "IRC_SERVER  473 ERR_INVITEONLYCHAN :Channel is already limited\r\n";
+            msg += "IRC_SERVER limited :Channel is already limited\r\n";
         }
     }
     else
     {
         if (channel->isLimited())
         {
-            if (channel->isOperator(client))
-            {
-                channel->unsetLimit();
-            }
-            else
-            {
-                msg += "IRC_SERVER 482 ERR_CHANOPRIVSNEEDED :You're not channel operator\r\n";
-            }
+            channel->unsetLimit();
+            genericReplies(channel, client, LIMIT_UNSET);
         }
         else
         {
-            msg += "IRC_SERVER  473 ERR_INVITEONLYCHAN :Channel is already not unlimited\r\n";
+            msg += "IRC_SERVER  unlimited :Channel is already not unlimited\r\n";
         }
     }
 }
@@ -403,182 +426,4 @@ void   Channel::modeCommand(vector<string> arg, Client* const client)
         modesQueue.pop();
     }
     send(client->getClntFd(), msg.c_str(), msg.size(), 0);
-
-
-    // for (size_t i = 0; i < arg.size();)
-    // {
-    //     size_t oldI = i;
-    //     for (size_t k = 0; k < arg[i].size(); k++)
-    //     {
-    //         switch (arg[i][k])
-    //         {
-    //             case '+':
-    //                 if (!arg[i][k])
-    //                 {
-    //                     msg += "IRC_SERVER 472 ERR_UNKNOWNMODE :Unknown mode charachter\r\n";
-    //                     break ;
-    //                 }
-    //                 for (size_t j = k + 1; j < arg[i].size(); j++)
-    //                 {
-    //                     switch (arg[i][j])
-    //                     {
-    //                         case 'i':
-    //                             if (this->isOperator(client))
-    //                             {
-    //                                 if (!this->privelege.invitOnly)
-    //                                     mode.invitOnly = true;
-    //                                 else
-    //                                     msg += "IRC_SERVER ERROR already invite only\r\n";
-    //                             }
-    //                             else
-    //                                 msg += "IRC_SERVER ERROR prev not a operator\r\n";
-    //                             break ;
-    //                         case 't':
-    //                             if (this->isOperator(client))
-    //                             {
-    //                                 if (!this->privelege.topic)
-    //                                     mode.topic = true;
-    //                                 else
-    //                                     msg += "IRC_SERVER 461 topic already public\r\n";
-    //                             }
-    //                             else
-    //                                 msg += "IRC_SERVER ERROR prev not a operator\r\n";
-    //                             break ;
-    //                         case 'k':
-    //                             if (this->isOperator(client))
-    //                             {
-    //                                 if (arg.size() > i)
-    //                                 {
-    //                                     mode.password = true;
-    //                                     mode.passwordStr = arg[++i];
-    //                                 }
-    //                                 else
-    //                                     msg += "IRC_SERVER 461 ERR_NEEDMOREPARAMS :Not enough parameters\r\n";
-    //                             }
-    //                             else
-    //                                 msg += "IRC_SERVER ERROR prev not a operator\r\n";
-    //                             break ;
-    //                         case 'o':
-    //                             if (this->isOperator(client))
-    //                             {
-    //                                 if (arg.size() > i)
-    //                                 {
-    //                                     if (Server::getInstance()->getClients())
-    //                                     {
-    //                                         if (this->getOperators().count(arg[i]))
-    //                                             msg += "IRC_SERVER 482 already admin " + arg[i] + "\r\n";
-    //                                         else
-    //                                             this->addOperator(*this->getMembers().find[arg[i]]);
-    //                                     }
-    //                                     else
-    //                                         msg += "IRC_SERVER 441 ERR_USERNOTINCHANNEL " + arg[i] + " :They aren't on that channel\r\n";
-    //                                 }
-    //                                 else
-    //                                     msg += "IRC_SERVER 461 ERR_NEEDMOREPARAMS :Not enough parameters\r\n";
-    //                             }
-    //                             else
-    //                                 msg += "IRC_SERVER ERROR prev not a operator\r\n";
-    //                             break ;
-    //                         case 'l':
-    //                             if (this->isOperator(client))
-    //                             {
-    //                                 if (arg.size() > i)
-    //                                 {
-    //                                     mode.limit = true;
-    //                                     mode.limitSize = atoll(arg[++i].c_str());
-    //                                 }
-    //                                 else
-    //                                     msg += "IRC_SERVER 461 ERR_NEEDMOREPARAMS :Not enough parameters\r\n";
-    //                             }
-    //                             else
-    //                                 msg += "IRC_SERVER ERROR prev not a operator\r\n";
-    //                             break ;
-    //                         default:
-    //                             msg += "IRC_SERVER 403 ERR_UNKNOWNMODE " + arg[i][j] + " :Unknown mode charachter\r\n";
-    //                             break ;
-    //                     }
-    //                 }
-    //                 break ;
-    //             case '-':
-    //                 for (size_t j = 0; j < arg[0].size(); j++)
-    //                 {
-    //                     switch (arg[0][j])
-    //                     {
-    //                         case 'i':
-    //                             if (this->isOperator(client))
-    //                             {
-    //                                 mode.invitOnly = false;
-    //                             }
-    //                             else
-    //                                 msg += "IRC_SERVER ERROR prev not a operator\r\n";
-    //                             break ;
-    //                         case 't':
-    //                             if (this->isOperator(client))
-    //                             {
-    //                                 if (this->privelege.topic)
-    //                                 {
-    //                                     mode.topic = false;
-    //                                     mode.topicStr = "";
-    //                                 }
-    //                                 else
-    //                                     msg += "IRC_SERVER  442 ERR_NOTOPIC :No topic is set\r\n";
-    //                             }
-    //                             else
-    //                                 msg += "IRC_SERVER ERROR prev not a operator\r\n";
-    //                             break ;
-    //                         case 'k':
-    //                             if (this->isOperator(client))
-    //                             {
-    //                                 if (this->privelege.password)
-    //                                 {
-    //                                     mode.password = false;
-    //                                     mode.passwordStr = arg[++i];
-    //                                 }
-    //                                 else
-    //                                     msg += "IRC_SERVER ??? ERR_NOKEY :No key is set\r\n";
-    //                             }
-    //                             else
-    //                                 msg += "IRC_SERVER ERROR prev not a operator\r\n";
-    //                             break ;
-    //                         case 'o':
-    //                             if (this->isOperator(client))
-    //                             {
-    //                                 if (arg.size() > i)
-    //                                 {
-    //                                     if (this->getOperators().count(arg[i]))
-    //                                         this,removeOperator(this->getMembers()[arg[i]]);
-    //                                     else
-    //                                         msg += "IRC_SERVER 482 ERR_NOTOPERATOR " + arg[i] + " :You're not an admin\r\n";
-    //                                 }
-    //                                 else
-    //                                     msg += "IRC_SERVER 461 ERR_NEEDMOREPARAMS :Not enough parameters\r\n";
-    //                             }
-    //                             else
-    //                                 msg += "IRC_SERVER ERROR prev not a operator\r\n";
-    //                             break ;
-    //                         case 'l':
-    //                             if (this->isOperator(client))
-    //                             {
-    //                                 if (this->privelege.limit)
-    //                                     mode.limit = false;
-    //                                 else
-    //                                     msg += "IRC_SERVER ??? ERR no limit is set\r\n";
-    //                             }
-    //                             else
-    //                                 msg += "IRC_SERVER ERROR prev not a operator\r\n";
-    //                             break ;
-    //                         default:
-    //                             msg += "IRC_SERVER 403 ERR_UNKNOWNMODE " + arg[0][j] + " :Unknown mode charachter\r\n";
-    //                             break ;
-    //                     }
-    //                 }
-    //                 break ;
-    //             default:
-    //                 msg += "IRC_SERVER 472 ERR_UNKNOWNMODE :Unknown mode charachter\r\n";
-    //                 break ;
-    //         }
-    //     }
-        // if (oldI == i)
-            // i++;
-    // }
 }

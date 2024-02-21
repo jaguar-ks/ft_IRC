@@ -157,15 +157,3 @@ bool    Client::joinCommand(vector<string> join)
     send(this->ClntFd, msg.c_str(), msg.size(), 0);
     return (true);
 }
-
-// int main(int argc, char const *argv[])
-// {
-//     if (argc > 2)
-//     {
-//         vector <string> a;
-
-//         for (int i = 1; i < argc; i++)
-//             a.push_back(argv[i]);
-//         joinCommand(a);    
-//     }
-// }

@@ -12,7 +12,7 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
     this->DoCmd["NICK"] = static_cast<bool (Client::*)(vector<string>)>(&Client::setNckName);
     this->DoCmd["USER"] = static_cast<bool (Client::*)(vector<string>)>(&Client::setUsrName);
     this->DoCmd["JOIN"] = static_cast<bool (Client::*)(vector<string>)>(&Client::joinCommand);
-    this->DoCmd["INFOCHANNEL"] = static_cast<bool (Client::*)(vector<string>)>(&Client::InfoChannel);
+    this->DoCmd["INFOC"] = static_cast<bool (Client::*)(vector<string>)>(&Client::InfoChannel);
     this->DoCmd["PRIVMSG"] = static_cast<bool (Client::*)(vector<string>)>(&Client::SendPrvMsg);
     this->DoCmd["INFO"] = static_cast<bool (Client::*)(vector<string>)>(&Client::Info);
     this->DoCmd["MODE"] = static_cast<bool (Client::*)(vector<string>)>(&Client::modeCommand);
@@ -277,6 +277,10 @@ bool		  Client::SendPrvMsg(vector<string> cmd) {
 
 bool Client::InfoChannel(vector<string> cmd)
 {
+    try
+    {
+        
+    
     for (size_t i = 0; i < cmd.size(); i++)
     {
         cout << cmd[i] << endl;
@@ -312,8 +316,18 @@ bool Client::InfoChannel(vector<string> cmd)
         if (chnl->isLocked()) msg += "✓ : ";
         else msg += "✕ ";
         if (chnl->isLocked()) msg += chnl->getPassword();
+        msg +=  "\nLimit: ";
+        if (chnl->isLimited()) msg += "✓ : ";
+        else msg += "✕ ";
+        if (chnl->isLimited()) msg += to_string(chnl->getLimit());
         msg +=  "\n";
     send(this->ClntFd, msg.c_str(), msg.size(), 0);
+    return true;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
     return true;
 }
 
