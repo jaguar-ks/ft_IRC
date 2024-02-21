@@ -2,7 +2,8 @@
 
 
 
-BtcPrice::BtcPrice(std::string host, std::string port, BotType type) : Bot("btcPrice", host, port, type) {}
+BtcPrice::BtcPrice(std::string host, std::string port, std::string pass, BotType type)
+ : Bot("btcPrice", host, port, pass, type) {}
 
 BtcPrice& BtcPrice::operator=( const BtcPrice& ) { return *this; }
 
@@ -57,5 +58,6 @@ void			BtcPrice::botReply(std::string msg)
 		else
 			std::cerr << "send: " << strerror(errno) << std::endl;}
 }
+
 
 BtcPrice::~BtcPrice() {}

@@ -3,35 +3,20 @@
 
 Bot::Bot() {}
 
-Bot::Bot(std::string name, std::string host, std::string port, BotType type)
- : _name(name), HostName(host), Port("6667"), Type(type) {}
+Bot::Bot(std::string name, std::string host, std::string port, std::string pass, BotType type)
+ : _name(name), HostName(host), Port(port), _pass(pass), Type(type) {}
 
 std::string		Bot::getName() const { return this->_name; }
 
 int				Bot::getSocketFd() const { return this->_fd; }
 
-bool			Bot::autoRegister(std::string pass)
+bool			Bot::autoRegister()
 {
 	std::stringstream	ss;
-	ss << "PASS " << static_cast<std::string>(pass) << "\r\n"
+	ss << "PASS " << this->_pass << "\r\n"
 	<< "NICK " << this->getName() << "\r\n"
 	<< "USER " << this->getName() << " 0 * " << this->getName() << "\r\n";
-	// if (send(this->getSocketFd(), ss.str().c_str(), ss.str().length(), 0) == -1)
-	// {
-	// 	std::cerr << "send: " << strerror(errno) << std::endl;
-	// 	return false;
-	// }
-	// ss.str("");
-	// // Sncro(_OPTIMAL);
-	// ss << "NICK " << this->getName() << "\r\n";
-	// if (send(this->getSocketFd(), ss.str().c_str(), ss.str().length(), 0) == -1)
-	// {
-	// 	std::cerr << "send: " << strerror(errno) << std::endl;
-	// 	return false;
-	// }
-	// ss.str("");
-	// ss << "USER " << this->getName() << " 0 * " << this->getName() << "\r\n";
-	if (send(this->getSocketFd(), ss.str().c_str(), ss.str().length(), 0) == -1)
+	if (send(this->getSocketFd(), ss.str().c_str(), ss.str().length(), 0) <= 0)
 	{
 		std::cerr << "send: " << strerror(errno) << std::endl;
 		return false;

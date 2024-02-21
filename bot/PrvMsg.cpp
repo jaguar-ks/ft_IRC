@@ -1,13 +1,14 @@
 #include "PrvMsg.hpp"
 
-PrvMsg::PrvMsg(std::string host, std::string port, BotType type)
- : Bot("AnonyMsg", host, port, type) {}
+PrvMsg::PrvMsg(std::string host, std::string port, std::string pass, BotType type)
+ : Bot("AnonyMsg", host, port, pass, type) {}
 
 PrvMsg::~PrvMsg() {}
 
 // PrvMsg::PrvMsg( const PrvMsg& ) {}
 
 PrvMsg& PrvMsg::operator=( const PrvMsg& ) { return *this; }
+
 
 void	PrvMsg::botReply(std::string msg)
 {

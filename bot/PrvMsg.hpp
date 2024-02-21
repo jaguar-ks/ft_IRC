@@ -10,9 +10,9 @@ class PrvMsg : public Bot
 		PrvMsg( const PrvMsg& );
 		PrvMsg& operator=( const PrvMsg& );
 	public:
-		PrvMsg(std::string host, std::string port, BotType type);
+		PrvMsg(std::string host, std::string port, std::string pass,BotType type);
 		void	botReply(std::string msg);
-		void		connectToServer();
+		// Bot*	createBot(std::string host, std::string port, BotType type);
 		~PrvMsg();
 };
 

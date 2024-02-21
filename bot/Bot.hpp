@@ -34,25 +34,27 @@ class Bot
 {
 	private:
 		std::string	_name;
-		std::string	HostName;
-		std::string	Port;
+		const std::string	HostName;
+		const std::string	Port;
+		const std::string	_pass;
 		int 		_fd;
 		BotType			Type;
 		Bot( const Bot& );
 		Bot& operator=( const Bot& );
 		Bot();
 	public:
-		Bot(std::string name, std::string host, std::string port, BotType type);
+		Bot(std::string, std::string, std::string, std::string, BotType);
 		std::string		getName() const;
 		const std::string&		getPort() const;
 		const std::string&		getHostName() const;
 		int				getSocketFd() const;
 		int				getBotType() const;
 		void			setSocketFd(int fd) { _fd = fd; }
-		bool			autoRegister( std::string );
+		bool			autoRegister();
 		virtual void			botReply(std::string) = 0;
 		std::string			extractCmd(std::string&);
 		std::string			extractNick(std::string&);
+		// virtual Bot*		createBot(std::string host, std::string port, BotType type) = 0;
 		virtual ~Bot();
 };
 
