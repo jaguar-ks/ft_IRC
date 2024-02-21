@@ -10,7 +10,7 @@ int main(int ac, char **av)
 		std::cerr << "Usage: " << av[0] << " <hostname> <port>" << std::endl;
 		exit(1);
 	}
-	PrvMsg btc(*(av + 1), *(av + 2),GETPRICE);
+	PrvMsg btc(*(av + 1), *(av + 2),ANNOMSG);
 	sockFd = connectToServer(btc);
 	if (sockFd == -1)
 	{
