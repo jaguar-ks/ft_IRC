@@ -73,7 +73,7 @@ void    Client::setCmd(string line) {
     for (size_t i = 0; i < line.size(); i++){
         if (line.at(i) == ':') {
             tmp = line.substr(i+1);
-            break ;
+            i = line.size() - 1;
         }
         if (line.at(i) != ' ')
             tmp += line.at(i);
