@@ -52,10 +52,10 @@ void			BtcPrice::botReply(std::string msg)
 	nick = extractNick(msg);
 	std::string finalMsg = static_cast<std::string>("PRIVMSG") + " " + nick + " " + getBtcPrice() + "\r\n";
 	if ((sendBytes = send(this->getSocketFd(), finalMsg.c_str(), finalMsg.size(), 0)) <= 0)
-		if (sendBytes == 0)
+	{	if (sendBytes == 0)
 			std::cerr << "Connection closed" << std::endl;
 		else
-			std::cerr << "send: " << strerror(errno) << std::endl;
+			std::cerr << "send: " << strerror(errno) << std::endl;}
 }
 
 BtcPrice::~BtcPrice() {}
