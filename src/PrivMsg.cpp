@@ -10,17 +10,15 @@
  * @return vector<string> A vector containing the individual targets.
  */
 
-vector<string> getTargets(string str) {
+vector<string> getTargets(string str, char sep) {
     vector<string> trg;
     string tmp;
-    size_t x = 0;
-    trg.push_back(string());
     for (size_t i = 0; i < str.size(); i++){
-        if (str.at(i) != ',')
-            trg[x] += str.at(i);
-        else {
-            trg.push_back(string());
-            x++;
+        if (str.at(i) != sep)
+            tmp += str.at(i);
+        if (str.at(i) == sep || i+1 == str.size()) {
+            trg.push_back(tmp);
+            tmp = "";
         }
     }
     return trg;
@@ -48,7 +46,7 @@ bool		  Client::SendPrvMsg(vector<string> cmd) {
         return false;
     }
     if (cmd.size() == 3) {
-        vector<string> targets = getTargets(cmd[1]);
+        vector<string> targets = getTargets(cmd[1], ',');
         for (size_t i = 0; i < targets.size(); i++) {
             if (*targets[i].begin() == '#') {
                 if (Server::getInstance()->getChannels().find(targets[i]) != Server::getInstance()->getChannels().end()) {
