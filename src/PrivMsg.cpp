@@ -50,10 +50,10 @@ bool		  Client::SendPrvMsg(vector<string> cmd) {
         for (size_t i = 0; i < targets.size(); i++) {
             if (*targets[i].begin() == '#') {
                 if (Server::getInstance()->getChannels().find(targets[i]) != Server::getInstance()->getChannels().end()) {
-                    if (find(this->Chnls.begin(), this->Chnls.end(), targets[i]) != this->Chnls.end()) {
+                    if (VcFind(this->Chnls, targets[i])) {
                         vector<Client *> chnlMbrs = Server::getInstance()->getChannels()[targets[i]]->getMembers();
                         for (size_t j = 0; j < chnlMbrs.size(); j++)
-                            if (chnlMbrs[j]->ClntFd != this->ClntFd)
+                            if (chnlMbrs[j] != this)
                                 SendMsg(*this, *chnlMbrs[j], cmd[0], cmd[2], targets[i]);
                     }
                     else
@@ -63,12 +63,9 @@ bool		  Client::SendPrvMsg(vector<string> cmd) {
                     ErrorMsgGenrator(":ircserv 403 ", " " + targets[i] + " :No such channel", *this);
             }
             else {
-                map<int, Client>::iterator it = Server::getInstance()->getClients().begin();
-                for (; it != Server::getInstance()->getClients().end(); it++)
-                    if (it->second.NckName == targets[i])
-                        break ;
-                if (it != Server::getInstance()->getClients().end())
-                    SendMsg(*this, it->second, cmd[0], cmd[2], targets[i]);
+                int Clnt = Server::getInstance()->getClientByNckName(targets[i]);
+                if (Clnt > 0)
+                    SendMsg(*this, Server::getInstance()->getClients()[Clnt], cmd[0], cmd[2], targets[i]);
                 else
                     ErrorMsgGenrator(":ircserv 401 ", " " + targets[i] + " :No such nick", *this);
             }

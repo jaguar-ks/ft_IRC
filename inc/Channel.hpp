@@ -1,7 +1,7 @@
 #pragma once
-#ifndef CHANNEL_HPP
-#define CHANNEL_HPP
-# include "Server.hpp"
+
+#include "Client.hpp"
+
 class Client;
 
 using namespace std;
@@ -74,4 +74,3 @@ class Channel
 
         const string   &getName() const;        
 };
-#endif

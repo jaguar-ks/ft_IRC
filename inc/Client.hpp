@@ -15,14 +15,15 @@
 #include <netdb.h>
 #include <sstream>
 #include <cstdio> 
-#include "Server.hpp"
 #include <curl/curl.h>
+#include "Channel.hpp"
+#include "Server.hpp"
 
 using namespace std;
 
-class Server;
+// class Server;
 
-class Channel;
+// class Channel;
 
 class Client {
 	private:
@@ -60,7 +61,7 @@ class Client {
 
         /****************************/
         /*        [OPERATORS]       */
-        bool operator==(Client &obj) {return this->ClntFd == obj.ClntFd;}
+        bool operator==(const Client &obj) const {return this->ClntFd == obj.ClntFd;}
 		/****************************/
         /*      [ClientActions]     */
 		bool		   ParsAndExec();

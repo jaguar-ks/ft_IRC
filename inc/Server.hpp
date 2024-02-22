@@ -21,8 +21,9 @@
 
 using namespace std;
 
-class Client;
 class Channel;
+
+class Client;
 
 #define max_connection 128
 
@@ -51,8 +52,9 @@ class Server {
     public:
         Server() {}
         ~Server() {
-            // free clients and channels
-            this->Channels.erase(this->Channels.begin(), this->Channels.end());
+            // for (map<int, Channel*>::iterator it = this->Channels.begin(); it != this->Channels.end(); it++)
+                // delete it->second;
+            // free Channels and channels
             delete Instance;
         }
         /*    [Server Actions]   */
@@ -69,6 +71,7 @@ class Server {
         map<int, Client>       &getClients() {return this->Clients;}
         map<string, Channel*>   &getChannels() {return this->Channels;}
         static Server           *getInstance() {return Instance;}
+        int                     getClientByNckName(string &NckName);
         /*************************/
         static string       Welcome();
 		static void			RegistMsgReply( const Client& );
@@ -81,9 +84,4 @@ void    VcRemove(vector<T> &, T);
 
 template <typename T>
 
-bool    VcFind(vector<T> &vc, T trg) {
-    for(size_t i = 0; i < vc.size(); i++)
-        if (vc[i] == trg)
-            return true;
-    return false;
-}
+bool    VcFind(vector<T> const &vc, T trg) {return find(vc.begin(), vc.end(), trg) != vc.end();}

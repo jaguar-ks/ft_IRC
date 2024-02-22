@@ -11,6 +11,14 @@ std::string	localTime(time_t now)
 
 bool isdigit_b(int c) {return isdigit(c);}
 
+int Server::getClientByNckName(string &NckName) {
+    map<int, Client>::const_iterator it = this->Clients.begin();
+    for (; it != this->Clients.end(); it++)
+        if (it->second.getNckName() == NckName)
+            return it->second.getClntFd();
+    return -1;
+}
+
 /*
     This member function open a socket
     for the server and bind it otherwise

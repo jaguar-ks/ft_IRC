@@ -2,6 +2,8 @@
 
 Channel::~Channel()
 {
+    // delete Server::getInstance()->getChannels()[this->name];
+    // Server::getInstance()->getChannels().erase(this->name);
 }
 
 /**
@@ -64,14 +66,7 @@ void    Channel::removeMember(Client* const member)
 {
     try
     {
-        for (vector <Client *>::iterator it = this->members.begin(); it != this->members.end(); it++)
-        {
-            if ((*it)->getClntFd() == member->getClntFd())
-            {
-                this->members.erase(it);
-                break;
-            }
-        }
+        VcRemove(this->members, member);
     }
     catch(const std::exception& e)
     {
@@ -82,14 +77,9 @@ void    Channel::removeOperator(Client* const op)
 {
     try
     {
-        for (vector <Client *>::iterator it = this->operators.begin(); it != this->operators.end(); it++)
-        {
-            if ((*it)->getClntFd() == op->getClntFd())
-            {
-                this->operators.erase(it);
-                break;
-            }
-        }
+        VcRemove(this->operators, op);
+        if (this->operators.empty())
+            this->autoAssignAdmin();
     }
     catch(const std::exception& e)
     {
@@ -101,14 +91,7 @@ void    Channel::removeInvited(Client* const client)
 {
     try
     {
-        for (vector <Client *>::iterator it = this->invited.begin(); it != this->invited.end(); it++)
-        {
-            if ((*it)->getClntFd() == client->getClntFd())
-            {
-                this->invited.erase(it);
-                break;
-            }
-        }
+        VcRemove(this->invited, client);
     }
     catch(const std::exception& e)
     {
@@ -128,26 +111,17 @@ vector <Client*> &Channel::getOperators()
 
 bool    Channel::isMember(Client* const member) const
 {
-    for (vector<Client*>::const_iterator it = this->members.begin(); it != this->members.end(); it++)
-        if ((*it)->getClntFd() == member->getClntFd())
-            return true;
-    return (false);
+    return VcFind(this->members, member);
 }
 
 bool    Channel::isOperator(Client* const admin) const
 {
-    for (vector<Client*>::const_iterator it = this->operators.begin(); it != this->operators.end(); it++)
-        if ((*it)->getClntFd() == admin->getClntFd())
-            return true;
-    return (false);
+    return VcFind(this->operators, admin);
 }
 
 bool    Channel::isInvited(Client* const client) const
 {
-    for (vector<Client*>::const_iterator it = this->invited.begin(); it != this->invited.end(); it++)
-        if ((*it)->getClntFd() == client->getClntFd())
-            return true;
-    return (false);
+    return VcFind(this->invited, client);
 }
 
 void    Channel::setOperator(Client* const client)
@@ -202,7 +176,6 @@ void    Channel::autoAssignAdmin()
         if (members.size() > 0)
         {
             this->addOperator(this->members[0]);
-            // this->removeMember(this->members[0]);
         }
         else
         {
