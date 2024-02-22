@@ -2,6 +2,14 @@
 #include "Channel.hpp"
 #include <queue>
 
+string listMembers(Channel &ch) {
+    string str;
+    vector<Client *> Mbrs = ch.getMembers();
+    for (size_t i = 0; i < Mbrs.size(); i++)
+        str += ((ch.isOperator(Mbrs[i])) ? "@" : "") + Mbrs[i]->getNckName() + ((i+1!=Mbrs.size()) ? " " : ""); 
+    return str;
+}
+
 static bool is_channel(string channel)
 {
     if (channel.size() == 1 && channel[0] == '0')
@@ -134,7 +142,7 @@ bool    Client::joinCommand(vector<string> join)
             search->second->addMember(this);
             this->Chnls.push_back(channels.front());
             SendMsg(*this, *search->second, join[0], "", channels.front());
-            msg = ":IRC_SERVER 353 " + this->NckName + " = " + channels.front() + " :@"+this->NckName+"\r\n";
+            ErrorMsgGenrator(":ircserv 353 ", " = " + channels.front() + " :"+listMembers(*search->second), *this);
             ErrorMsgGenrator(":ircserv 366 ", " " + channels.front() + " :End of /NAMES list.", *this);
         }
         channels.pop();

@@ -163,7 +163,7 @@ bool    Client::QuitServer(vector<string> cmd) {
     }
     close(this->ClntFd);
     for (size_t i = 0; i < Friends.size(); i++)
-        SendMsg(*this, Friends[i], cmd[0], ":" + cmd[cmd.size()-1], ":QUIT:");
+        SendMsg(*this, Friends[i], cmd[0], cmd[cmd.size()-1], ":QUIT:");
     // Server::getInstance()->RemoveClient(this->ClntFd);
     return true;
 }
