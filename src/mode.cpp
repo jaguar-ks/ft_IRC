@@ -5,13 +5,13 @@
 bool Client::modeCommand(vector<string> arg)
 {
     arg.erase(arg.begin());
-    if (arg.size() < 2)
+    if (arg.size() < 1)
         return (false);
     if (arg[0][0] != '#' || arg[0].size() < 2 || arg[0].size() > 51)
         return (false);
 
     map<string, Channel*>   &Channels =  Server::getInstance()->getChannels();
-    if (!Channels.count(arg[0]))
+    if (!Server::getInstance()->isChannel(arg[0]))
     {
         /*
         **  403 ERR_NOSUCHCHANNEL
@@ -379,8 +379,23 @@ void   Channel::modeCommand(vector<string> arg, Client* const client)
     string  msg;
     queue<pair <bool, char> >   modesQueue;
 
-    if (arg.size() == 2)
-    {}
+    if (!arg.size())
+    {
+        string modes;
+
+        if (privelege.invitOnly |privelege.topic | privelege.password | privelege.limit)
+            modes += "+";
+        if (privelege.invitOnly)
+            modes += "i";
+        if (privelege.topic)
+            modes += "t";
+        if (privelege.password)
+            modes += "k";
+        if (privelege.limit)
+            modes += "l";
+        ErrorMsgGenrator(":irc_server 324 ", " " + modes, *client);
+        return ;
+    }
     getOperations(arg, modesQueue, msg);
     cout << "MODES QUEUE SIZE: " << modesQueue.size() << endl;
     size_t index = 0;
