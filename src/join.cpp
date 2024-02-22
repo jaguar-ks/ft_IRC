@@ -4,6 +4,8 @@
 
 static bool is_channel(string channel)
 {
+    if (channel.size() == 1 && channel[0] == '0')
+        return (true);
     if (channel.size() < 2 || channel.size() > 51 || channel[0] != '#')
         return (false);
     channel.erase(0, 1);
@@ -17,7 +19,9 @@ static bool is_channel(string channel)
 
 static void    joinParser(vector<string> join, queue<string> &channels, queue<string> &passwords, string &msg)
 {
-    stringstream chnls(join[1]);
+    join.erase(join.begin());
+
+    stringstream chnls(join[0]);
     string channel;
     while (getline(chnls, channel, ','))
     {
@@ -31,7 +35,7 @@ static void    joinParser(vector<string> join, queue<string> &channels, queue<st
         }
     }
     
-    stringstream pswds(join[2]);
+    stringstream pswds(join[1]);
     string password;
     while (getline(pswds, password, ','))
     {
@@ -57,8 +61,25 @@ bool    Client::joinCommand(vector<string> join)
     while (!channels.empty())
     {
         map<string, Channel*>                &Channels =  Server::getInstance()->getChannels();
+        map<string, Channel*>::iterator      search   =  Channels.find(channels.front());
 
-        
+
+        if (channels.front().size() == 1 && channels.front()[0] == '0')
+        {
+            for (size_t i = 0; i < this->Chnls.size(); i++)
+            {
+                msg = ":" + this->NckName+ "!" + this->UsrName + "@" + this->HstName + " PART " + this->Chnls[i] + "\r\n";
+                for (size_t j = 0; j < Channels.find(this->Chnls[i])->second->getMembers().size(); j++)
+                    send(Channels.find(this->Chnls[i])->second->getMembers()[j]->getClntFd(), msg.c_str(), msg.size(), 0);
+                Channels[this->Chnls[i]]->removeMember(this);
+                Channels[this->Chnls[i]]->removeOperator(this);
+                Channels[this->Chnls[i]]->removeInvited(this);
+            }
+            this->Chnls.clear();
+            channels.pop();
+            msg = "";
+            continue;
+        }
         if (!Channels.count(channels.front()))
         {
             Channel *chnl = new Channel(this, channels.front());
@@ -69,15 +90,10 @@ bool    Client::joinCommand(vector<string> join)
             msg += "creation:" + this->NckName+ "!" + this->UsrName + "@" + this->HstName + " JOIN " + channels.front() + "\r\n";
             msg += ":IRC_SERVER 353 " + this->NckName + " = " + channels.front() + " :@"+this->NckName+"\r\n";
             msg += ":IRC_SERVER 366 " + this->NckName + " " + channels.front() + " ::End of /NAMES list\r\n";
-            // chnl->addMember(this);
-            // chnl->addOperator(this);
             this->Chnls.push_back(channels.front());
-            // channels.pop();
-            // continue ;
         }
         else
         {
-            map<string, Channel*>::iterator      search   =  Channels.find(channels.front());
 
             if (search->second->isLocked())
             {
@@ -88,20 +104,18 @@ bool    Client::joinCommand(vector<string> join)
                     continue;
                 }
                 else {
-                    // search->second->addMember(this);
                     passwords.pop();
                 }
             }
 
             if (search->second->isLimited())
             {
-                if (search->second->getLimit() >= search->second->getMembers().size()) {
+                if (search->second->getLimit() >= search->second->getMembers().size())
+                {
                     msg += "471  JOIN :Cannot join channel (+l)";
                     channels.pop();
                     continue;
                 }
-                // else
-                    // search->second->addMember(this);
             }
 
             if (search->second->isMember(this))
@@ -113,30 +127,29 @@ bool    Client::joinCommand(vector<string> join)
 
             if (search->second->isInviteOnly())
             {
-                if (!search->second->isInvited(this)){
+                if (!search->second->isInvited(this))
+                {
                     msg += "473  JOIN :Cannot join channel (+i)";
                     channels.pop();
                     continue;
                 }
-                else {
-                    // search->second->addMember(this);
+                else
+                {
                     search->second->removeInvited(this);
                 }
             }
+
             search->second->addMember(this);
             this->Chnls.push_back(channels.front());
-            cout << "Channel : am heeeeeeeeeeeeeeeeere{{{{{{{{{{{{}}}}}}}}}}}}" << channels.front() << endl;
-            // for (vector <Client*>::iterator it = Channels[channels.front()]->getMembers().begin(); it != search->second->getMembers().end(); it++)
+
             for (size_t i = 0; i < search->second->getMembers().size(); i++)
             {
                 msg = ":" + this->NckName+ "!" + this->UsrName + "@" + this->HstName + " JOIN " + channels.front() + "\r\n";
-                // ;
-                // cout << "Sending to " << (*it)->getNckName() << endl;
                 send(search->second->getMembers()[i]->getClntFd(), msg.c_str(), msg.size(), 0);
             }
+
             msg = ":IRC_SERVER 353 " + this->NckName + " = " + channels.front() + " :@"+this->NckName+"\r\n";
             msg += ":IRC_SERVER 366 " + this->NckName + " " + channels.front() + " ::End of /NAMES list\r\n";
-            // if (!channels.empty())
         }
         channels.pop();
     }
@@ -144,15 +157,3 @@ bool    Client::joinCommand(vector<string> join)
     send(this->ClntFd, msg.c_str(), msg.size(), 0);
     return (true);
 }
-
-// int main(int argc, char const *argv[])
-// {
-//     if (argc > 2)
-//     {
-//         vector <string> a;
-
-//         for (int i = 1; i < argc; i++)
-//             a.push_back(argv[i]);
-//         joinCommand(a);    
-//     }
-// }
