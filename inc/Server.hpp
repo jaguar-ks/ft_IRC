@@ -18,6 +18,7 @@
 #include <arpa/inet.h>
 #include "Client.hpp"
 #include "Channel.hpp"
+#include <fcntl.h>
 
 using namespace std;
 
