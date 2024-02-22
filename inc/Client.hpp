@@ -16,7 +16,7 @@
 #include <sstream>
 #include <cstdio> 
 #include "Server.hpp"
-#include <curl/curl.h>
+// #include <curl/curl.h>
 
 using namespace std;
 
@@ -65,6 +65,8 @@ class Client {
         /*      [ClientActions]     */
 		bool		   ParsAndExec();
 		bool		   joinCommand(vector<string>);
+		bool		   modeCommand(vector<string>);
+		bool		   inviteCommand(vector<string>);
 		bool		   SendPrvMsg(vector<string>);
 		bool		   Info(vector<string>);
 		bool		   setNckName(vector<string>);
@@ -76,6 +78,8 @@ class Client {
 		bool		   Kick(vector<string>);
 		bool		   Topic(vector<string>);
 		/****************************/
+		/*      [DebugActions]     */
+		bool		   infoChannel(vector<string>);
 };
 
 void    ErrorMsgGenrator(string const &Prefix, string const &Sufix, Client &Sender);

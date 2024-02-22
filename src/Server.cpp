@@ -186,7 +186,32 @@ bool Server::ReplyToClient(Client &Clnt) {
 			// return Clnt.ParsAndExec();
         // return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
     }
-	cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
+    else if (!val)
+    {
+        map<string, Channel*>                &Channels =  Server::getInstance()->getChannels();
+
+        for (size_t i = 0; i < Clnt.getChnls().size(); i++)
+        {
+
+            string msg = ":" + Clnt.getNckName()+ "!" + Clnt.getUsrName() + "@" + Clnt.getHstName() + " PART " + Clnt.getChnls()[i] + "\r\n";
+            for (size_t j = 0; j < Channels.find(Clnt.getChnls()[i])->second->getMembers().size(); j++)
+            {
+                if (Channels.find(Clnt.getChnls()[i])->second->getMembers()[j]->getClntFd() != Clnt.getClntFd())
+                    send(Channels.find(Clnt.getChnls()[i])->second->getMembers()[j]->getClntFd(), msg.c_str(), msg.size(), 0);
+            }
+
+            Channels[Clnt.getChnls()[i]]->removeMember(&Clnt);
+            Channels[Clnt.getChnls()[i]]->removeOperator(&Clnt);
+        }
+        this->Clients.erase(Clnt.getClntFd());
+        for (size_t i = 0; i < this->ClFds.size(); i++)
+        {
+            if (this->ClFds[i].fd == Clnt.getClntFd())
+                this->ClFds.erase(this->ClFds.begin() + i);
+        }
+    }
+    else
+	    cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
     this->RemoveClient(Clnt.getClntFd());
     return false;
 }
@@ -257,14 +282,6 @@ void VcRemove(vector<T> &vc, T trg) {
         vc.erase(vc.begin() + i);
 }
 
-// template <typename T>
-
-// bool    VcFind(vector<T> &vc, T trg) {
-//     for(size_t i = 0; i < vc.size(); i++)
-//         if (vc[i] == trg)
-//             return true;
-//     return false;
-// }
 
 void	Server::BroadCastMsg( const Client& reciever, const stringstream& msg ) const
 {
@@ -295,4 +312,36 @@ void	Server::RegistMsgReply(const Client& u)
 	<< " <servername>" << " <version> " << "<available umodes>" 
 	<< " <available cmodes>" << C_CLS << "\r\n";
 	Server::Instance->BroadCastMsg(u, wMsg);
+}
+
+Client &               Server::getClient(string &NckName)
+{
+    map<int, Client>::iterator it = Server::getInstance()->getClients().begin();
+    map<int, Client>::iterator itend = Server::getInstance()->getClients().end();
+    for (; it != itend; it++)
+        if (it->second.getNckName() == NckName)
+            return it->second;
+    return it->second;
+}
+
+Channel *              Server::getChannel(string &NckName)
+{
+    return this->Channels[NckName];
+}
+
+bool                Server::isClient(string &NckName) {
+    for (map<int, Client>::iterator it = this->Clients.begin(); it != this->Clients.end(); it++)
+        if (it->second.getNckName() == NckName)
+            return true;
+    return false;
+}
+
+bool                Server::isClient(int ClntFd)
+{
+    return this->Clients.find(ClntFd) != this->Clients.end();
+}
+
+bool                Server::isChannel(string &chnl)
+{
+    return this->Channels.find(chnl) != this->Channels.end();
 }
