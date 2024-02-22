@@ -157,14 +157,14 @@ bool    Client::QuitServer(vector<string> cmd) {
     for (size_t i = 0; i < this->Chnls.size(); i++) {
         vector<Client *> tmp = Server::getInstance()->getChannels()[this->Chnls[i]]->getMembers();
         for (size_t j = 0; j < tmp.size(); j++) {
-            if ((!Friends.empty() || !VcFind(Friends, *tmp[j])) && tmp[j] != this)
+            if ((!Friends.empty() || !VcFind(Friends, *tmp[j])))
                 Friends.push_back(*tmp[j]);
         }
     }
+    close(this->ClntFd);
     for (size_t i = 0; i < Friends.size(); i++)
         SendMsg(*this, Friends[i], cmd[0], ":" + cmd[cmd.size()-1], ":QUIT:");
-    Server::getInstance()->RemoveClient(this->ClntFd);
-    close(this->ClntFd);
+    // Server::getInstance()->RemoveClient(this->ClntFd);
     return true;
 }
 
@@ -199,7 +199,7 @@ void    ErrorMsgGenrator(string const &Prefix, string const &Sufix, Client &Send
 void    SendMsg(Client &Sender, Client &Reciver, string const &Cmd, string const &Msg, string const &Trg) {
     string msg = ":" + Sender.getNckName() + "!~" + Sender.getRlName()
                 + "@" + Sender.getHstName() + " " + Cmd + " " + Trg
-                + " :" + Msg + "\r\n";
+                + ((Msg.empty()) ? "\r\n" : " :" + Msg + "\r\n");
 
     if (send(Reciver.getClntFd(), msg.c_str(), msg.size(), 0) < 0)
         Server::getInstance()->RemoveClient(Reciver.getClntFd());
@@ -223,7 +223,7 @@ void    SendMsg(Client &Sender, Client &Reciver, string const &Cmd, string const
 void    SendMsg(Client &Sender, Channel &Reciver, string const &Cmd, string const &Msg, string const &Trg) {
     string msg = ":" + Sender.getNckName() + "!~" + Sender.getRlName()
                 + "@" + Sender.getHstName() + " " + Cmd + " " + Trg
-                + " :" + Msg + "\r\n";
+                + ((Msg.empty()) ? "\r\n" : " :" + Msg + "\r\n");
 
     for (size_t i = 0; i < Reciver.getMembers().size(); i++)
         if (Sender.getClntFd() != Reciver.getMembers()[i]->getClntFd())

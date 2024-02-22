@@ -17,7 +17,7 @@ static bool is_channel(string channel)
     return (true);
 }
 
-static void    joinParser(vector<string> join, queue<string> &channels, queue<string> &passwords, string &msg)
+static void    joinParser(vector<string> join, queue<string> &channels, queue<string> &passwords, Client &clt)
 {
     stringstream chnls(join[1]);
     string channel;
@@ -25,7 +25,7 @@ static void    joinParser(vector<string> join, queue<string> &channels, queue<st
     {
         if (!is_channel(channel))
         {
-            msg += "476  JOIN :Bad channel name " + channel;
+            ErrorMsgGenrator(":ircserv 476 ", " " + channel + " :Bad channel name", clt);
         }
         else
         {
@@ -48,13 +48,9 @@ bool    Client::joinCommand(vector<string> join)
     string          msg;
 
     if (!this->Regestred)
-    {
-        msg = ":ircserv 451 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " " + join[0] + " :You have not registered\r\n";
-        send(this->ClntFd, msg.c_str(), msg.size(), 0);
-        return (false);
-    }
+        ErrorMsgGenrator(":ircserv 451 ", " " + join[0] + " :You have not registered", *this);
 
-    joinParser(join, channels, passwords, msg);
+    joinParser(join, channels, passwords, *this);
 
     while (!channels.empty())
     {
@@ -66,9 +62,7 @@ bool    Client::joinCommand(vector<string> join)
         {
             for (size_t i = 0; i < this->Chnls.size(); i++)
             {
-                msg = ":" + this->NckName+ "!" + this->UsrName + "@" + this->HstName + " PART " + this->Chnls[i] + "\r\n";
-                for (size_t j = 0; j < Channels.find(this->Chnls[i])->second->getMembers().size(); j++)
-                    send(Channels.find(this->Chnls[i])->second->getMembers()[j]->getClntFd(), msg.c_str(), msg.size(), 0);
+                SendMsg(*this, *Channels[this->Chnls[i]], "PART", "", this->Chnls[i]);
                 Channels[this->Chnls[i]]->removeMember(this);
                 Channels[this->Chnls[i]]->removeOperator(this);
                 Channels[this->Chnls[i]]->removeInvited(this);
@@ -85,9 +79,9 @@ bool    Client::joinCommand(vector<string> join)
             Channels[channels.front()] = chnl;
 
             cout << "channel created" << Channels[channels.front()]->getName() << " : " << channels.front() << endl;
-            msg += "creation:" + this->NckName+ "!" + this->UsrName + "@" + this->HstName + " JOIN " + channels.front() + "\r\n";
-            msg += ":IRC_SERVER 353 " + this->NckName + " = " + channels.front() + " :@"+this->NckName+"\r\n";
-            msg += ":IRC_SERVER 366 " + this->NckName + " " + channels.front() + " ::End of /NAMES list\r\n";
+            SendMsg(*this, *this, join[0], "", channels.front());
+            ErrorMsgGenrator(":ircserv 353 ", " = " + channels.front() + " :@"+this->NckName, *this);
+            ErrorMsgGenrator(":ircserv 366 ", " " + channels.front() + " :End of /NAMES list.", *this);
             this->Chnls.push_back(channels.front());
         }
         else
@@ -97,7 +91,7 @@ bool    Client::joinCommand(vector<string> join)
             {
                 if (passwords.empty() || (search->second->getPassword() != passwords.front()))
                 {
-                    msg += "475  JOIN :Wrong password";
+                    ErrorMsgGenrator(":ircserv 475 ", " " + channels.front() + " :Wrong password", *this);
                     channels.pop();
                     continue;
                 }
@@ -110,7 +104,7 @@ bool    Client::joinCommand(vector<string> join)
             {
                 if (search->second->getLimit() >= search->second->getMembers().size())
                 {
-                    msg += "471  JOIN :Cannot join channel (+l)";
+                    ErrorMsgGenrator(":ircserv 471 ", " " + channels.front() + " :Cannot join channel (+l)", *this);
                     channels.pop();
                     continue;
                 }
@@ -118,7 +112,7 @@ bool    Client::joinCommand(vector<string> join)
 
             if (search->second->isMember(this))
             {
-                msg += "477  JOIN :Already a member of channel";
+                ErrorMsgGenrator(":ircserv 477 ", " " + channels.front() + " :Already a member of channel", *this);
                 channels.pop();
                 continue;
             }
@@ -127,7 +121,7 @@ bool    Client::joinCommand(vector<string> join)
             {
                 if (!search->second->isInvited(this))
                 {
-                    msg += "473  JOIN :Cannot join channel (+i)";
+                    ErrorMsgGenrator(":ircserv 473 ", " " + channels.front() + " :Cannot join channel (+i)", *this);
                     channels.pop();
                     continue;
                 }
@@ -139,15 +133,9 @@ bool    Client::joinCommand(vector<string> join)
 
             search->second->addMember(this);
             this->Chnls.push_back(channels.front());
-
-            for (size_t i = 0; i < search->second->getMembers().size(); i++)
-            {
-                msg = ":" + this->NckName+ "!" + this->UsrName + "@" + this->HstName + " JOIN " + channels.front() + "\r\n";
-                send(search->second->getMembers()[i]->getClntFd(), msg.c_str(), msg.size(), 0);
-            }
-
+            SendMsg(*this, *search->second, join[0], "", channels.front());
             msg = ":IRC_SERVER 353 " + this->NckName + " = " + channels.front() + " :@"+this->NckName+"\r\n";
-            msg += ":IRC_SERVER 366 " + this->NckName + " " + channels.front() + " ::End of /NAMES list\r\n";
+            ErrorMsgGenrator(":ircserv 366 ", " " + channels.front() + " :End of /NAMES list.", *this);
         }
         channels.pop();
     }
