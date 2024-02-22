@@ -74,6 +74,7 @@ class Client {
 		bool		   btcPrice(vector<string>);
 		bool		   anonyMsg(vector<string>);
 		bool		   Kick(vector<string>);
+		bool		   Topic(vector<string>);
 		/****************************/
 };
 
