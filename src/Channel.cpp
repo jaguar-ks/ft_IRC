@@ -184,14 +184,18 @@ void    Channel::kickUser(Client* const admin, Client* const user)
 {
     try
     {
-        if (this->isOperator(admin) && (this->isMember(user)))
-        {
             this->removeMember(user);
-        }
-        else if (this->isOperator(admin) && this->isOperator(user))
-        {
             this->removeOperator(user);
-        }
+            this->removeInvited(user);
+
+        // if (this->isOperator(admin) && (this->isMember(user)))
+        // {
+        //     this->removeMember(user);
+        // }
+        // else if (this->isOperator(admin) && this->isOperator(user))
+        // {
+        //     this->removeOperator(user);
+        // }
     }
     catch(const std::exception& e)
     {

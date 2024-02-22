@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <map>
+#include <utility>
 #include <vector>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -18,7 +19,6 @@
 #include <arpa/inet.h>
 #include "Client.hpp"
 #include "Channel.hpp"
-
 using namespace std;
 
 class Client;
@@ -38,7 +38,7 @@ class Server {
         /*[Constructers and operatores overload]*/
         Server(const Server &obj) {*this=obj;}
         Server &operator=(const Server &obj) {(void)obj;return *this;}
-        /****************************************/
+                /****************************************/
     public:
         Server() {}
         ~Server() {
@@ -56,9 +56,27 @@ class Server {
         /*************************/
         /*       [GETTERS]       */
         static Server           *InstanceServer(string &port, string &Pswd);
+        Client &                getClient(int ClntFd) {return this->Clients[ClntFd];}
+
+
+        Client &               getClient(string &NckName);
+        // {
+            // map<int, Client>::iterator it = Server::getInstance()->getClientss().begin();
+            // map<int, Client>::iterator itend = Server::getInstance()->getClientss().end();
+            // for (; it != itend; it++)
+                // if (it->second.getNckName() == NckName)
+                    // return it->second;
+            // return this->Clients[0];
+        // }
+        Channel *               getChannel(string &NckName);
+
+        bool                isClient(string &NckName);
+        bool                isClient(int ClntFd);
+        bool                isChannel(string &chnl);
+
         int                     getSockFd() const {return this->SockFd;}
         string                  getPswd() const {return this->Pswd;}
-        map<int, Client>       &getClients() {return this->Clients;}
+        map<int, Client>        &getClients() {return this->Clients;}
         map<string, Channel*>   &getChannels() {return this->Channels;}
         static Server           *getInstance() {return Instance;}
         /*************************/

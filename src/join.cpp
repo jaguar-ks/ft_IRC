@@ -99,7 +99,7 @@ bool    Client::joinCommand(vector<string> join)
             {
                 if (passwords.empty() || (search->second->getPassword() != passwords.front()))
                 {
-                    msg += "475  JOIN :Wrong password";
+                    msg += "475  JOIN :Wrong password\r\n";
                     channels.pop();
                     continue;
                 }
@@ -112,7 +112,7 @@ bool    Client::joinCommand(vector<string> join)
             {
                 if (search->second->getLimit() >= search->second->getMembers().size())
                 {
-                    msg += "471  JOIN :Cannot join channel (+l)";
+                    msg += "471  JOIN :Cannot join channel (+l)\r\n";
                     channels.pop();
                     continue;
                 }
@@ -120,7 +120,7 @@ bool    Client::joinCommand(vector<string> join)
 
             if (search->second->isMember(this))
             {
-                msg += "477  JOIN :Already a member of channel";
+                msg += "477  JOIN :Already a member of channel\r\n";
                 channels.pop();
                 continue;
             }
@@ -129,7 +129,7 @@ bool    Client::joinCommand(vector<string> join)
             {
                 if (!search->second->isInvited(this))
                 {
-                    msg += "473  JOIN :Cannot join channel (+i)";
+                    msg += "473  JOIN :Cannot join channel (+i)\r\n";
                     channels.pop();
                     continue;
                 }

@@ -335,6 +335,7 @@ void    limitController(Channel* const channel, Client* const client, string &ms
 {
     if (!channel->isOperator(client))
     {
+        
         msg += ":"+client->getHstName()+" 482 "+client->getNckName()+" "+channel->getName()+" :You're not channel operator\r\n";
     }
     if (set)

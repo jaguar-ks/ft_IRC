@@ -71,12 +71,10 @@ class Channel
         string getPassword() const;
         size_t      getLimit() const;
         vector <Client*>      &getInvited(){return this->invited;};
-
         Channel(Client* const client, string name);
         ~Channel();
-
-
         void   modeCommand(vector<string> arg, Client* const client);
+        void   inviteCommand(vector<string> arg, Client* const client);
         const string   &getName() const;        
 };
 #endif

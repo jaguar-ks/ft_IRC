@@ -16,6 +16,7 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
     this->DoCmd["PRIVMSG"] = static_cast<bool (Client::*)(vector<string>)>(&Client::SendPrvMsg);
     this->DoCmd["INFO"] = static_cast<bool (Client::*)(vector<string>)>(&Client::Info);
     this->DoCmd["MODE"] = static_cast<bool (Client::*)(vector<string>)>(&Client::modeCommand);
+    this->DoCmd["INVITE"] = static_cast<bool (Client::*)(vector<string>)>(&Client::inviteCommand);
     this->HstName = inet_ntoa(*ClntAddr);
 }
 
@@ -187,7 +188,8 @@ bool		  Client::setSrvPss(vector<string> cmd)
     if (cmd.size() == 2) {
         if (this->Regestred)
             msg = ":ircserv 462 " + ((!this->NckName.empty()) ? this->NckName : "* ") + " :You may not reregister\r\n";
-        else if(Server::getInstance()->getPswd() == cmd[1]) {
+        else if(Server::getInstance()->getPswd() == cmd[1])
+        {
             this->SrvPss = cmd[1];
             return true;
         }

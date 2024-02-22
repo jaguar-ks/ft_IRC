@@ -195,3 +195,29 @@ void VcRemove(vector<T> &vc, T trg) {
 //             return true;
 //     return false;
 // }
+
+        Client &               Server::getClient(string &NckName)
+        {
+            map<int, Client>::iterator it = Server::getInstance()->getClients().begin();
+            map<int, Client>::iterator itend = Server::getInstance()->getClients().end();
+            for (; it != itend; it++)
+                if (it->second.getNckName() == NckName)
+                    return it->second;
+            return it->second;
+        }
+        Channel *              Server::getChannel(string &NckName)
+        {
+            return this->Channels[NckName];
+        }
+
+        bool                Server::isClient(string &NckName) {
+            for (map<int, Client>::iterator it = this->Clients.begin(); it != this->Clients.end(); it++)
+                if (it->second.getNckName() == NckName)
+                    return true;
+            return false;
+        }
+        bool                Server::isClient(int ClntFd)
+        {return this->Clients.find(ClntFd) != this->Clients.end();}
+        bool                Server::isChannel(string &chnl)
+        {return this->Channels.find(chnl) != this->Channels.end();}
+

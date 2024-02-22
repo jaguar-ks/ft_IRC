@@ -19,7 +19,6 @@
 using namespace std;
 
 class Server;
-
 class Client
 {
 	private:
@@ -61,7 +60,8 @@ class Client
 		bool		   ParsAndExec();
 		bool		   modeCommand(vector<string>);
 		bool		   joinCommand(vector<string>);
-		bool		   InfoChannel(vector<string> cmd);
+		bool		   InfoChannel(vector<string>);
+		bool		   inviteCommand(vector<string>);
 		bool		   SendPrvMsg(vector<string>);
 		bool		   Info(vector<string>);
 };
