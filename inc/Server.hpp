@@ -56,24 +56,34 @@ class Server {
             delete Instance;
         }
         /*    [Server Actions]   */
-        void                launchServer();
-        bool                JoinServer();
-        bool                ReplyToClient(Client &Clnt);
-        void                SetSockFd(string &port);
-        void                RemoveClient(int);
+        void                    launchServer();
+        bool                    JoinServer();
+        bool                    ReplyToClient(Client &Clnt);
+        void                    SetSockFd(string &port);
+        void                    RemoveClient(int);
         /*************************/
+        Client                  &getClient(int ClntFd) {return this->Clients[ClntFd];}
+
+
+        Client                  &getClient(string &NckName);
+        Channel                 *getChannel(string &NckName);
+
+        bool                    isClient(string &NckName);
+        bool                    isClient(int ClntFd);
+        bool                    isChannel(string &chnl);
+
         /*       [GETTERS]       */
         static Server           *InstanceServer(string &port, string &Pswd);
         int                     getSockFd() const {return this->SockFd;}
         string                  getPswd() const {return this->Pswd;}
-        map<int, Client>       &getClients() {return this->Clients;}
-        map<int, Client>       getClientst() {return this->Clients;}
+        map<int, Client>        &getClients() {return this->Clients;}
+        map<int, Client>        getClientst() {return this->Clients;}
         map<string, Channel*>   &getChannels() {return this->Channels;}
         static Server           *getInstance() {return Instance;}
         /*************************/
-        static string       Welcome();
-		static void			RegistMsgReply( const Client& );
-		void				BroadCastMsg( const Client& reciever, const stringstream& msg ) const;
+        static string           Welcome();
+		static void			    RegistMsgReply( const Client& );
+		void				    BroadCastMsg( const Client& reciever, const stringstream& msg ) const;
 };
 
 template <typename T>
