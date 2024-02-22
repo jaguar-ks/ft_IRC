@@ -24,6 +24,9 @@ using namespace std;
 class Client;
 class Channel;
 
+#define SERVER_NAME "IRCserv.1337.ma"
+#define VERSION "1.0"
+
 #define max_connection 128
 
 # define BLU "\033[34;1m"
