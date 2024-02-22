@@ -145,20 +145,20 @@ bool    Client::joinCommand(vector<string> join)
                 }
             }
 
-            search->second->addMember(this);
-            this->Chnls.push_back(channels.front());
-
+            string users(this->NckName);
             for (size_t i = 0; i < search->second->getMembers().size(); i++)
-            {
+            { 
+                users += " " + search->second->getMembers()[i]->getNckName();
                 msg = ":" + this->NckName+ "!" + this->UsrName + "@" + this->HstName + " JOIN " + channels.front() + "\r\n";
-                msg += ":IRC_SERVER 353 " + this->NckName + " = " + channels.front() + " :@"+this->NckName+"\r\n";
-                msg += ":IRC_SERVER 366 " + this->NckName + " " + channels.front() + " ::End of /NAMES list\r\n";
                 send(search->second->getMembers()[i]->getClntFd(), msg.c_str(), msg.size(), 0);
             }
+            msg += ":IRC_SERVER 353 " + this->NckName + " = " + channels.front() + " :@"+users+"\r\n";
+            msg += ":IRC_SERVER 366 " + this->NckName + " " + channels.front() + " ::End of /NAMES list\r\n";
+            search->second->addMember(this);
+            this->Chnls.push_back(channels.front());
         }
         channels.pop();
     }
-
     send(this->ClntFd, msg.c_str(), msg.size(), 0);
     return (true);
 }

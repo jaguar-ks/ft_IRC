@@ -189,24 +189,23 @@ bool Server::ReplyToClient(Client &Clnt) {
     else if (!val)
     {
         map<string, Channel*>                &Channels =  Server::getInstance()->getChannels();
+        int fd = Clnt.getClntFd();
+        (void)fd;
 
         for (size_t i = 0; i < Clnt.getChnls().size(); i++)
         {
-
             string msg = ":" + Clnt.getNckName()+ "!" + Clnt.getUsrName() + "@" + Clnt.getHstName() + " PART " + Clnt.getChnls()[i] + "\r\n";
             for (size_t j = 0; j < Channels.find(Clnt.getChnls()[i])->second->getMembers().size(); j++)
             {
                 if (Channels.find(Clnt.getChnls()[i])->second->getMembers()[j]->getClntFd() != Clnt.getClntFd())
                     send(Channels.find(Clnt.getChnls()[i])->second->getMembers()[j]->getClntFd(), msg.c_str(), msg.size(), 0);
             }
-
             Channels[Clnt.getChnls()[i]]->removeMember(&Clnt);
             Channels[Clnt.getChnls()[i]]->removeOperator(&Clnt);
         }
-        this->Clients.erase(Clnt.getClntFd());
         for (size_t i = 0; i < this->ClFds.size(); i++)
         {
-            if (this->ClFds[i].fd == Clnt.getClntFd())
+            if (this->ClFds[i].fd == fd)
                 this->ClFds.erase(this->ClFds.begin() + i);
         }
     }
