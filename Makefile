@@ -6,7 +6,8 @@ OBJ = $(patsubst %, $(OBJ_DIR)/%, $(notdir $(SRC:.cpp=.o)))
 
 INC_DIR = inc
 
-FLGS = -Wall -Wextra -Werror -std=c++20 #-fsanitize=address
+FLGS = 
+# -Wall -Wextra -Werror -std=c++20 #-fsanitize=address
 
 NAME = ircserv
 

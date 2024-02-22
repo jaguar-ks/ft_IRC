@@ -10,10 +10,13 @@ int main(int ac, char **av) {
     atexit(f);
     if(ac == 3) {
         signal(SIGINT, hundl);
-        // signal(SIGPIPE, SIG_IGN);
+        signal(SIGPIPE, SIG_IGN);
+
         string pwd(av[2]);
-        string prt(av[1]);  
+        string prt(av[1]);
+		
         Server *srv = Server::InstanceServer(prt, pwd);
+		cout << '\n' << srv->Welcome() << endl;
         cout << "\t\t[Server Started]" << endl << "Portleaks: " << prt << endl;
         while (!interpted)
             srv->launchServer();

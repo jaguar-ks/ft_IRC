@@ -87,7 +87,7 @@ string Server::Welcome() {
     Wlcm += "\t██║███╗██║██╔══╝  ██║     ██║     ██║   ██║██║╚██╔╝██║██╔══╝  \n";
     Wlcm += "\t╚███╔███╔╝███████╗███████╗╚██████╗╚██████╔╝██║ ╚═╝ ██║███████╗\n";
     Wlcm += "\t ╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝\n";
-    Wlcm += "\t\t\tMade By : 0xJ4GU4R | 0x54B4 | 0xF4551\n";
+    Wlcm += "\t\t\tMade By : 0xJ4GU4R | 0x54B4 | 0xM0RPH5\n";
     Wlcm += "For help type: HELP\n";
     return Wlcm;
 }
@@ -296,19 +296,19 @@ void	Server::RegistMsgReply(const Client& u)
 	stringstream	wMsg;
 		// RPL_WELCOME
 	const string&	nickName = u.getNckName();
-	wMsg << GRN << ":" << "<servername> 001 " << nickName 
+	wMsg << GRN << ":" << SERVER_NAME << " 001 " << nickName 
 	<< " : Welcome to the Internet Relay Network" << "\r\n";
 		// RPL_YOURHOST
-	wMsg <<":" << "<servername> 002 " << nickName 
-	<< " : Your host is <servername>, running version <version> " << "\r\n";
+	wMsg <<":" << SERVER_NAME << " 002 " << nickName 
+	<< " : Your host is " << SERVER_NAME << ", running version " << VERSION << "\r\n";
 		// RPL_CREATED
-	wMsg << ":" << "<servername> 003 " << nickName 
-	<< " :This <servername> server was created " << Server::Instance->LocalTime << "\r\n";
+	wMsg << ":" << SERVER_NAME << " 003 " << nickName 
+	<< " :This " << SERVER_NAME << " server was created " << Server::Instance->LocalTime << "\r\n";
 		// RPL_MYINFO
 	// <available umodes>: List of available user modes.
 	// <available cmodes>: List of available channel modes.
 	wMsg << ":" << "server 004 " << nickName 
-	<< " <servername>" << " <version> " << "<available umodes>" 
+	<< " " << SERVER_NAME << " Version relaisse "<< VERSION << " <available umodes>" 
 	<< " <available cmodes>" << C_CLS << "\r\n";
 	Server::Instance->BroadCastMsg(u, wMsg);
 }
