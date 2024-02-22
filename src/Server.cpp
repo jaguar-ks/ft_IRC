@@ -41,7 +41,7 @@ void Server::SetSockFd(string &port) {
         this->SockFd = socket(tmp->ai_family, tmp->ai_socktype, tmp->ai_protocol);
         if (this->SockFd < 0)
             continue;
-        setsockopt(this->SockFd, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val));
+        setsockopt(this->SockFd, SOL_SOCKET, (SO_REUSEADDR | SO_NOSIGPIPE), &opt_val, sizeof(opt_val));
         if (bind(this->SockFd, tmp->ai_addr, tmp->ai_addrlen)) {
             close(this->SockFd);
             continue;
@@ -72,6 +72,7 @@ Server *Server::InstanceServer(string &port, string &psw) {
             exit(1);
         }
         Instance->SetSockFd(port);
+        fcntl(Instance->SockFd, F_SETFD, O_NONBLOCK);
         Instance->Pswd = psw;
         if (listen(Instance->SockFd, max_connection)) {
             cerr << "Listening : " << strerror(errno) << endl;
@@ -134,14 +135,15 @@ bool Server::JoinServer() {
         cerr << "Establishing Connection : " << strerror(errno) << endl;
         return false;
     }
+    fcntl(ClntFd, F_SETFD, O_NONBLOCK);
     this->Clients.insert(pair<int, Client>(ClntFd, Client(ClntFd, &ClntAddr.sin_addr)));
     this->ClFds.push_back(pollfd());
     this->ClFds.back().fd = ClntFd;
     this->ClFds.back().events = POLLIN;
-    map<int, Client>::iterator it = this->Clients.begin();
-    cout << "\t---|Clients List|---" << endl;
-    for (;it != this->Clients.end(); it++)
-        cout << "Client:[" << it->second.getNckName() << "]in machine:[" << it->second.getHstName() << "] using socket[" << it->first <<"]" << endl;
+    // map<int, Client>::iterator it = this->Clients.begin();
+    // cout << "\t---|Clients List|---" << endl;
+    // for (;it != this->Clients.end(); it++)
+    //     cout << "Client:[" << it->second.getNckName() << "]in machine:[" << it->second.getHstName() << "] using socket[" << it->first <<"]" << endl;
     return true;
 }
 
@@ -188,7 +190,7 @@ bool Server::ReplyToClient(Client &Clnt) {
             return true;
         // Msg.erase(Clnt.getMsg().size() - 2);
         Msg.erase(0, Msg.find_first_not_of(" \t\n\v\f\r"));
-        cout << Msg << endl;
+        // cout << Msg << endl;
 		// cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Msg << endl;
 		return BufferFeed(Clnt, Clnt.getBff());
 			// return Clnt.ParsAndExec();
@@ -248,10 +250,10 @@ void    Server::RemoveClient(int fd) {
     }
     this->Clients.erase(fd);
     close(fd);
-    map<int, Client>::iterator it = this->Clients.begin();
-    cout << "\t---|Clients List|---" << endl;
-    for (;it != this->Clients.end(); it++)
-        cout << "Client:[" << it->second.getNckName() << "]in machine:[" << it->second.getHstName() << "] using socket[" << it->first <<"]" << endl;
+//     map<int, Client>::iterator it = this->Clients.begin();
+//     cout << "\t---|Clients List|---" << endl;
+//     for (;it != this->Clients.end(); it++)
+//         cout << "Client:[" << it->second.getNckName() << "]in machine:[" << it->second.getHstName() << "] using socket[" << it->first <<"]" << endl;
 }
 
 template <typename T>
@@ -284,7 +286,7 @@ void	Server::BroadCastMsg( const Client& reciever, const stringstream& msg ) con
 
 void	Server::RegistMsgReply(const Client& u)
 {
-	cout << "ok" << endl;
+	// cout << "ok" << endl;
 	stringstream	wMsg;
 		// RPL_WELCOME
 	const string&	nickName = u.getNckName();

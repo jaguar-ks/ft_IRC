@@ -25,7 +25,7 @@ bool	Client::anonyMsg(vector<string> cmd)
 {
 	if (cmd.size() == 3)
 	{
-		cout << "here" << endl;
+		// cout << "here" << endl;
 		map<int, Client>::iterator it = Server::getInstance()->getClients().begin();
 		map<int, Client>::iterator ite = Server::getInstance()->getClients().end();
 		for (; it != ite; it++)
