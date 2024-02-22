@@ -67,6 +67,7 @@ class Server {
         int                     getSockFd() const {return this->SockFd;}
         string                  getPswd() const {return this->Pswd;}
         map<int, Client>       &getClients() {return this->Clients;}
+        map<int, Client>       getClientst() {return this->Clients;}
         map<string, Channel*>   &getChannels() {return this->Channels;}
         static Server           *getInstance() {return Instance;}
         /*************************/
