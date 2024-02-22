@@ -12,29 +12,24 @@ bool    Client::Kick(vector<string> cmd) {
         cout << "[" + cmd[i] + "]" << endl;
     if (cmd.size() == 3) {
         if (Server::getInstance()->getChannels().find(cmd[1]) != Server::getInstance()->getChannels().end()) {
-            if (VcFind(this->Chnls, cmd[1])) {
-                Channel *chnl = Server::getInstance()->getChannels()[cmd[1]];
+            Channel *chnl = Server::getInstance()->getChannels()[cmd[1]];
+            if (chnl->isMember(this)) {
                 if (chnl->isOperator(this)) {
+                    if (Server::getInstance()->getClientByNckName(cmd[2]) < 0) {
+                        ErrorMsgGenrator(":ircserv 401 ", " " + cmd[2] + " :No such nick", *this);
+                        return false;
+                    }
                     vector<Client *>::iterator it = chnl->getMembers().begin();
                     for (; it != chnl->getMembers().end(); it++)
                         if ((*it)->NckName == cmd[2])
                             break;
                     if (it == chnl->getMembers().end()) {
-                        map<int, Client> clnts = Server::getInstance()->getClients();
-                        map<int, Client>::iterator fnd = clnts.begin();
-                        for (;fnd != clnts.end(); fnd++)
-                            if (fnd->second.NckName == cmd[2])
-                                break ;
-                        if (fnd != clnts.end())
-                            ErrorMsgGenrator(":ircserv 441 ", " " + cmd[2] + " " + cmd[1] + " :They aren't on that channel", *this);
-                        else
-                            ErrorMsgGenrator(":ircserv 401 ", " " + cmd[2] + " :No such nick", *this);
+                        ErrorMsgGenrator(":ircserv 441 ", " " + cmd[2] + " " + cmd[1] + " :They aren't on that channel", *this);
                         return false;
                     }
                     SendMsg(*this, *chnl, cmd[0], ":" + (*it)->NckName, cmd[1] + " " + (*it)->NckName);
-                    chnl->removeMember(*it);
-                    chnl->removeOperator(*it);
                     VcRemove((*it)->Chnls, cmd[1]);
+                    chnl->kickUser(this, *it);
                     if (chnl->getMembers().empty()) {
                         delete chnl;
                         Server::getInstance()->getChannels().erase(cmd[1]);

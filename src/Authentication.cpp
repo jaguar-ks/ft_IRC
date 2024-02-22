@@ -27,12 +27,7 @@ bool    Client::setNckName(vector<string> cmd)
                 ErrorMsgGenrator(":ircserv 432 ", " :Erroneus nickname", *this);
             else {
 				// cout << "NICKNAME: " << cmd[1] << endl;
-                map<int, Client> Clnts = Server::getInstance()->getClients();
-                map<int, Client>::iterator it = Clnts.begin();
-                for (; it != Clnts.end(); it++)
-                    if (it->second.NckName == cmd[1])
-                        break ;
-                if (it != Clnts.end())
+                if (Server::getInstance()->getClientByNckName(cmd[1]) > 0)
                     ErrorMsgGenrator(":ircserv 433 ", " :Nickname is already in use", *this);
                 else {
                     this->NckName = cmd[1];
