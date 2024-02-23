@@ -26,7 +26,7 @@ class Channel;
 
 class Client;
 
-#define SERVER_NAME "IRCserv.1337.ma "
+#define SERVER_NAME ":IRCserv.1337.ma "
 #define VERSION "1.0"
 
 #define max_connection 128
@@ -111,3 +111,5 @@ void VcRemove(vector<T> &vc, T trg) {
     if (i != vc.size())
         vc.erase(vc.begin() + i);
 }
+
+std::string	localTime(time_t now);

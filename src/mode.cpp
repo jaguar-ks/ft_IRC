@@ -186,7 +186,7 @@ void inviteOnlyController(Channel* const channel, Client* const client, bool set
         else
         {
             ErrorMsgGenrator(":IRCserv.1337.ma 473 ", channel->getName() + " :Channel is already invite only", *client);
-            ;// msg += "IRCserv.1337.ma 473 ERR_INVITEONLYCHAN :Channel is already invite only\r\n";
+            ;// msg += ":IRCserv.1337.ma 473 ERR_INVITEONLYCHAN :Channel is already invite only\r\n";
         }
     }
     else
@@ -200,7 +200,7 @@ void inviteOnlyController(Channel* const channel, Client* const client, bool set
         }
         else
         {
-            ;// msg += "IRCserv.1337.ma 473 ERR_INVITEONLYCHAN :Channel is already not invite only\r\n";
+            ;// msg += ":IRCserv.1337.ma 473 ERR_INVITEONLYCHAN :Channel is already not invite only\r\n";
         }
     }
 }
@@ -223,7 +223,7 @@ void topicController(Channel* const channel, Client* const client, bool set)
         }
         else
         {
-            ;// msg += "IRCserv.1337.ma  442 ERR_NOTOPIC :Channel topic is already public\r\n";
+            ;// msg += ":IRCserv.1337.ma  442 ERR_NOTOPIC :Channel topic is already public\r\n";
         }
     }
     else
@@ -237,7 +237,7 @@ void topicController(Channel* const channel, Client* const client, bool set)
         }
         else
         {
-            ;// msg += "IRCserv.1337.ma  442 ERR_NOTOPIC :Channel topic is already private\r\n";
+            ;// msg += ":IRCserv.1337.ma  442 ERR_NOTOPIC :Channel topic is already private\r\n";
         }
     }
 }
@@ -251,7 +251,7 @@ void    keyController(Channel* const channel, Client* const client, bool set, si
     }
     if (++index >= arg.size())
     {
-        ;// msg += "IRCserv.1337.ma 461 ERR_NEEDMOREPARAMS :Not enough parameters\r\n";
+        ;// msg += ":IRCserv.1337.ma 461 ERR_NEEDMOREPARAMS :Not enough parameters\r\n";
         return ;
     }
     if (set)
@@ -265,7 +265,7 @@ void    keyController(Channel* const channel, Client* const client, bool set, si
         }
         else
         {
-            ;// msg += "IRCserv.1337.ma 467 ERR_KEYSET :Channel key is already set\r\n";
+            ;// msg += ":IRCserv.1337.ma 467 ERR_KEYSET :Channel key is already set\r\n";
         }
     }
     else
@@ -279,11 +279,11 @@ void    keyController(Channel* const channel, Client* const client, bool set, si
                 // genericReplies(channel, client, PASSWORD_UNSET);
             }
             else
-                ;// msg += "IRCserv.1337.ma 475 ERR_BADCHANNELKEY :Wrong channel key\r\n";
+                ;// msg += ":IRCserv.1337.ma 475 ERR_BADCHANNELKEY :Wrong channel key\r\n";
         }
         else
         {
-            ;// msg += "IRCserv.1337.ma 467 ERR_KEYSET :Channel key is already unset\r\n";
+            ;// msg += ":IRCserv.1337.ma 467 ERR_KEYSET :Channel key is already unset\r\n";
         }
     }
 }
@@ -373,7 +373,7 @@ void    limitController(Channel* const channel, Client* const client, bool set, 
         }
         else
         {
-            ;// msg += "IRCserv.1337.ma limited :Channel is already limited\r\n";
+            ;// msg += ":IRCserv.1337.ma limited :Channel is already limited\r\n";
         }
     }
     else
@@ -387,7 +387,7 @@ void    limitController(Channel* const channel, Client* const client, bool set, 
         }
         else
         {
-            ;// msg += "IRCserv.1337.ma  unlimited :Channel is already not unlimited\r\n";
+            ;// msg += ":IRCserv.1337.ma  unlimited :Channel is already not unlimited\r\n";
         }
     }
 }

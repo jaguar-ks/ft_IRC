@@ -22,7 +22,7 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
 	this->DoCmd["MODE"] = static_cast<bool (Client::*)(vector<string>)>(&Client::modeCommand);
 	this->DoCmd["INVITE"] = static_cast<bool (Client::*)(vector<string>)>(&Client::inviteCommand);
 	this->DoCmd["INFOC"] = static_cast<bool (Client::*)(vector<string>)>(&Client::infoChannel);
-	this->DoCmd["PING"] = static_cast<bool (Client::*)(vector<string>)>(&Client::Pong);
+	this->DoCmd["PONG"] = static_cast<bool (Client::*)(vector<string>)>(&Client::Pong);
     this->HstName = inet_ntoa(*ClntAddr);
 }
 		// bool		   infoChannel(vector<string>);
@@ -126,6 +126,13 @@ bool	Client::btcPrice(vector<string> cmd) {
 	return false;
 }
 
+void Client::Welcome() {
+    ErrorMsgGenrator(":IRCserv.1337.ma 001 ", "Welcome to the KAMIKAZI Network, " + this->NckName, *this);
+    ErrorMsgGenrator(":IRCserv.1337.ma 002 ", "Your host is IRCserv.1337.ma, running version 0.1.0", *this);
+    ErrorMsgGenrator(":IRCserv.1337.ma 003 ", "This server was created " + localTime(time(0)), *this);
+    ErrorMsgGenrator(":IRCserv.1337.ma 004 ", " " + this->NckName + " IRCserv.1337.ma 0.1.0", *this);
+}
+
 /**
  * @brief Sets the command for the client.
  * 
@@ -177,12 +184,12 @@ bool    Client::ParsAndExec() {
     if (this->DoCmd.find(this->Cmd[0]) != this->DoCmd.end())
         rt = (this->*DoCmd[this->Cmd[0]])(this->Cmd);
     else {
-        ErrorMsgGenrator("IRCserv.1337.ma 421 ", " " + this->Cmd[0] + " :Unknown command", *this);
+        ErrorMsgGenrator(":IRCserv.1337.ma 421 ", " " + this->Cmd[0] + " :Unknown command", *this);
         rt = false;
     }
     if (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty()) {
         if (!this->Regestred)
-            Server::RegistMsgReply(*this);
+            this->Welcome();
         this->Regestred = true;
     }
     this->Msg = "";

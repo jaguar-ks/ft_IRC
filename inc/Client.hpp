@@ -85,6 +85,7 @@ class Client {
 		}
 		void sendClientMsg(string&, vector<string>&);
 		void sendChannelMsg(string&, vector<string>&);
+		void Welcome();
 		/****************************/
 		/*      [DebugActions]     */
 		bool		   infoChannel(vector<string>);

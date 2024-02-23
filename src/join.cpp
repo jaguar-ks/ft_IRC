@@ -99,8 +99,8 @@ bool    Client::joinCommand(vector<string> join)
 
             // cout << "channel created" << Channels[channels.front()]->getName() << " : " << channels.front() << endl;
             SendMsg(*this, *this, join[0], "", channels.front());
-            ErrorMsgGenrator("IRCserv.1337.ma 353 ", " = " + channels.front() + " :@"+this->NckName, *this);
-            ErrorMsgGenrator("IRCserv.1337.ma 366 ", " " + channels.front() + " :End of /NAMES list.", *this);
+            ErrorMsgGenrator(":IRCserv.1337.ma 353 ", " = " + channels.front() + " :@"+this->NckName, *this);
+            ErrorMsgGenrator(":IRCserv.1337.ma 366 ", " " + channels.front() + " :End of /NAMES list.", *this);
             this->Chnls.push_back(channels.front());
         }
         else
@@ -154,8 +154,8 @@ bool    Client::joinCommand(vector<string> join)
             search->second->addMember(this);
             this->Chnls.push_back(channels.front());
             SendMsg(*this, *search->second, join[0], "", channels.front());
-            ErrorMsgGenrator("IRCserv.1337.ma 353 ", " = " + channels.front() + " :"+listMembers(*search->second), *this);
-            ErrorMsgGenrator("IRCserv.1337.ma 366 ", " " + channels.front() + " :End of /NAMES list.", *this);
+            ErrorMsgGenrator(":IRCserv.1337.ma 353 ", " = " + channels.front() + " :"+listMembers(*search->second), *this);
+            ErrorMsgGenrator(":IRCserv.1337.ma 366 ", " " + channels.front() + " :End of /NAMES list.", *this);
         }
         channels.pop();
     }
