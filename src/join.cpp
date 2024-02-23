@@ -24,16 +24,23 @@ static bool is_channel(string channel)
     }
     return (true);
 }
-
-static void    joinParser(vector<string> join, queue<string> &channels, queue<string> &passwords, Client &clt)
+// void    ErrorMsgGenrator(string const &Prefix, string const &Sufix, Client &Sender) {
+    // string msg = Prefix + ((Sender.getNckName().empty()) ? "*" : Sender.getNckName())
+                // + Sufix + "\r\n";
+// 
+    // if (send(Sender.getClntFd(), msg.c_str(), msg.size(), 0) < 0)
+        // Server::getInstance()->RemoveClient(Sender.getClntFd());
+// }
+static void    joinParser(vector<string> join, queue<string> &channels, queue<string> &passwords, Client &client)
 {
-    stringstream chnls(join[1]);
+    join.erase(join.begin());
+    stringstream chnls(join[0]);
     string channel;
     while (getline(chnls, channel, ','))
     {
         if (!is_channel(channel))
         {
-            ErrorMsgGenrator(":ircserv 476 ", " " + channel + " :Bad channel name", clt);
+            ErrorMsgGenrator(":irc_server 476 ", " " + channel + " Bad Channel Name", client);
         }
         else
         {
@@ -41,7 +48,7 @@ static void    joinParser(vector<string> join, queue<string> &channels, queue<st
         }
     }
     
-    stringstream pswds(join[2]);
+    stringstream pswds(join[1]);
     string password;
     while (getline(pswds, password, ','))
     {
@@ -56,7 +63,10 @@ bool    Client::joinCommand(vector<string> join)
     string          msg;
 
     if (!this->Regestred)
-        ErrorMsgGenrator(":ircserv 451 ", " " + join[0] + " :You have not registered", *this);
+    {
+        ErrorMsgGenrator(":irc_server 451 ", " " + join[0] + " :You have not registered", *this);
+        return (false);
+    }
 
     joinParser(join, channels, passwords, *this);
 
@@ -99,7 +109,7 @@ bool    Client::joinCommand(vector<string> join)
             {
                 if (passwords.empty() || (search->second->getPassword() != passwords.front()))
                 {
-                    ErrorMsgGenrator(":ircserv 475 ", " " + channels.front() + " :Wrong password", *this);
+                    ErrorMsgGenrator(":irc_server 475 ", " " + channels.front() + " :Cannot join channel (+k) - bad key", *this);
                     channels.pop();
                     continue;
                 }
@@ -110,9 +120,9 @@ bool    Client::joinCommand(vector<string> join)
 
             if (search->second->isLimited())
             {
-                if (search->second->getLimit() >= search->second->getMembers().size())
+                if (search->second->getLimit() <= search->second->getMembers().size())
                 {
-                    ErrorMsgGenrator(":ircserv 471 ", " " + channels.front() + " :Cannot join channel (+l)", *this);
+                    ErrorMsgGenrator(":irc_server 471 ", " " + channels.front() + " :Cannot join channel (+l) - channel is full", *this);
                     channels.pop();
                     continue;
                 }
@@ -120,7 +130,7 @@ bool    Client::joinCommand(vector<string> join)
 
             if (search->second->isMember(this))
             {
-                ErrorMsgGenrator(":ircserv 477 ", " " + channels.front() + " :Already a member of channel", *this);
+                ErrorMsgGenrator(":irc_server 443 ", " " + channels.front() + " :You are already on that channel", *this);
                 channels.pop();
                 continue;
             }
@@ -129,7 +139,8 @@ bool    Client::joinCommand(vector<string> join)
             {
                 if (!search->second->isInvited(this))
                 {
-                    ErrorMsgGenrator(":ircserv 473 ", " " + channels.front() + " :Cannot join channel (+i)", *this);
+                    ErrorMsgGenrator(":irc_server 473 ", " " + channels.front() + " :Cannot join channel (+i) - You must be invited", *this);
+                    msg += "473  JOIN :Cannot join channel (+i)\r\n";
                     channels.pop();
                     continue;
                 }
@@ -147,19 +158,6 @@ bool    Client::joinCommand(vector<string> join)
         }
         channels.pop();
     }
-
     send(this->ClntFd, msg.c_str(), msg.size(), 0);
     return (true);
 }
-
-// int main(int argc, char const *argv[])
-// {
-//     if (argc > 2)
-//     {
-//         vector <string> a;
-
-//         for (int i = 1; i < argc; i++)
-//             a.push_back(argv[i]);
-//         joinCommand(a);    
-//     }
-// }

@@ -41,7 +41,7 @@ void Server::SetSockFd(string &port) {
         this->SockFd = socket(tmp->ai_family, tmp->ai_socktype, tmp->ai_protocol);
         if (this->SockFd < 0)
             continue;
-        setsockopt(this->SockFd, SOL_SOCKET, (SO_REUSEADDR | SO_NOSIGPIPE), &opt_val, sizeof(opt_val));
+        setsockopt(this->SockFd, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val));
         if (bind(this->SockFd, tmp->ai_addr, tmp->ai_addrlen)) {
             close(this->SockFd);
             continue;
@@ -164,6 +164,7 @@ bool	BufferFeed(Client &Clnt, string &buffer)
 		if (tmp.size() && tmp[tmp.size() - 1] == '\r')
 			tmp.erase(tmp.size() - 1);
 		Clnt.setMsgDzeb(tmp);
+        cout << tmp << endl;
 		if (!Clnt.getMsg().empty())
             parsed = Clnt.ParsAndExec();
 		tmp.clear();
@@ -196,8 +197,35 @@ bool Server::ReplyToClient(Client &Clnt) {
 			// return Clnt.ParsAndExec();
         // return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
     }
+    // else if (!val)
+    // {
+    //     map<string, Channel*>                &Channels =  Server::getInstance()->getChannels();
+    //     int fd = Clnt.getClntFd();
+    //     (void)fd;
+
+    //     for (size_t i = 0; i < Clnt.getChnls().size(); i++)
+    //     {
+    //         string msg = ":" + Clnt.getNckName()+ "!" + Clnt.getUsrName() + "@" + Clnt.getHstName() + " PART " + Clnt.getChnls()[i] + "\r\n";
+    //         for (size_t j = 0; j < Channels.find(Clnt.getChnls()[i])->second->getMembers().size(); j++)
+    //         {
+    //             if (Channels.find(Clnt.getChnls()[i])->second->getMembers()[j]->getClntFd() != Clnt.getClntFd())
+    //                 send(Channels.find(Clnt.getChnls()[i])->second->getMembers()[j]->getClntFd(), msg.c_str(), msg.size(), 0);
+    //         }
+    //         Channels[Clnt.getChnls()[i]]->removeMember(&Clnt);
+    //         Channels[Clnt.getChnls()[i]]->removeOperator(&Clnt);
+    //     }
+    //     for (size_t i = 0; i < this->ClFds.size(); i++)
+    //     {
+    //         if (this->ClFds[i].fd == fd)
+    //             this->ClFds.erase(this->ClFds.begin() + i);
+    //     }
+    // }
+    // else
 	cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
-    this->RemoveClient(Clnt.getClntFd());
+    // this->RemoveClient(Clnt.getClntFd());
+    vector<string> vc;
+    vc.push_back("QUIT");
+    Clnt.QuitServer(vc);
     return false;
 }
 /*
@@ -234,18 +262,13 @@ void    Server::RemoveClient(int fd) {
     }
     if (!this->Clients[fd].getChnls().empty()) {
         for (size_t i = 0; i < this->Clients[fd].getChnls().size(); i++) {
-            VcRemove(this->Channels[this->Clients[fd].getChnls()[i]]->getMembers(), &this->Clients[fd]);
+            this->Channels[this->Clients[fd].getChnls()[i]]->removeInvited(&this->Clients[fd]);
+            this->Channels[this->Clients[fd].getChnls()[i]]->removeOperator(&this->Clients[fd]);
+            this->Channels[this->Clients[fd].getChnls()[i]]->removeMember(&this->Clients[fd]);
             if (this->Channels[this->Clients[fd].getChnls()[i]]->getMembers().empty()) {
                 delete this->Channels[this->Clients[fd].getChnls()[i]];
                 this->Channels.erase(this->Clients[fd].getChnls()[i]);
-                VcRemove(this->Clients[fd].getChnls(), this->Clients[fd].getChnls()[i]);
-                continue;
             }
-            VcRemove(this->Channels[this->Clients[fd].getChnls()[i]]->getOperators(), &this->Clients[fd]);
-            if (this->Channels[this->Clients[fd].getChnls()[i]]->getOperators().empty() && !this->Channels[this->Clients[fd].getChnls()[i]]->getMembers().empty())
-                this->Channels[this->Clients[fd].getChnls()[i]]->getOperators().push_back(this->Channels[this->Clients[fd].getChnls()[i]]->getMembers().front());
-            VcRemove(this->Channels[this->Clients[fd].getChnls()[i]]->getInvited(), &this->Clients[fd]);
-            VcRemove(this->Clients[fd].getChnls(), this->Clients[fd].getChnls()[i]);
         }
     }
     this->Clients.erase(fd);
@@ -256,25 +279,6 @@ void    Server::RemoveClient(int fd) {
 //         cout << "Client:[" << it->second.getNckName() << "]in machine:[" << it->second.getHstName() << "] using socket[" << it->first <<"]" << endl;
 }
 
-template <typename T>
-
-void VcRemove(vector<T> &vc, T trg) {
-    size_t i = 0;
-    for (;i < vc.size(); i++)
-        if (vc[i] == trg)
-            break ;
-    if (i != vc.size())
-        vc.erase(vc.begin() + i);
-}
-
-// template <typename T>
-
-// bool    VcFind(vector<T> &vc, T trg) {
-//     for(size_t i = 0; i < vc.size(); i++)
-//         if (vc[i] == trg)
-//             return true;
-//     return false;
-// }
 
 void	Server::BroadCastMsg( const Client& reciever, const stringstream& msg ) const
 {
@@ -305,4 +309,36 @@ void	Server::RegistMsgReply(const Client& u)
 	<< " <servername>" << " <version> " << "<available umodes>" 
 	<< " <available cmodes>" << C_CLS << "\r\n";
 	Server::Instance->BroadCastMsg(u, wMsg);
+}
+
+Client &               Server::getClient(string &NckName)
+{
+    map<int, Client>::iterator it = Server::getInstance()->getClients().begin();
+    map<int, Client>::iterator itend = Server::getInstance()->getClients().end();
+    for (; it != itend; it++)
+        if (it->second.getNckName() == NckName)
+            return it->second;
+    return it->second;
+}
+
+Channel *              Server::getChannel(string &NckName)
+{
+    return this->Channels[NckName];
+}
+
+bool                Server::isClient(string &NckName) {
+    for (map<int, Client>::iterator it = this->Clients.begin(); it != this->Clients.end(); it++)
+        if (it->second.getNckName() == NckName)
+            return true;
+    return false;
+}
+
+bool                Server::isClient(int ClntFd)
+{
+    return this->Clients.find(ClntFd) != this->Clients.end();
+}
+
+bool                Server::isChannel(string &chnl)
+{
+    return this->Channels.find(chnl) != this->Channels.end();
 }

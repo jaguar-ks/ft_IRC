@@ -15,15 +15,14 @@
 #include <netdb.h>
 #include <sstream>
 #include <cstdio> 
-#include <curl/curl.h>
-#include "Channel.hpp"
 #include "Server.hpp"
+// #include <curl/curl.h>
 
 using namespace std;
 
 // class Server;
 
-// class Channel;
+class Channel;
 
 class Client {
 	private:
@@ -66,6 +65,8 @@ class Client {
         /*      [ClientActions]     */
 		bool		   ParsAndExec();
 		bool		   joinCommand(vector<string>);
+		bool		   modeCommand(vector<string>);
+		bool		   inviteCommand(vector<string>);
 		bool		   SendPrvMsg(vector<string>);
 		bool		   Info(vector<string>);
 		bool		   setNckName(vector<string>);
@@ -75,7 +76,15 @@ class Client {
 		bool		   btcPrice(vector<string>);
 		bool		   anonyMsg(vector<string>);
 		bool		   Kick(vector<string>);
+		bool		   Topic(vector<string>);
+		bool		   Pong(vector<string> vc) {
+			// (void)vc;
+			cout << vc[0] << endl;
+			return true;
+		}
 		/****************************/
+		/*      [DebugActions]     */
+		bool		   infoChannel(vector<string>);
 };
 
 void    ErrorMsgGenrator(string const &Prefix, string const &Sufix, Client &Sender);
