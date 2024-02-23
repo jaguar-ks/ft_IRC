@@ -1,4 +1,4 @@
-SRC = src/main.cpp src/Server.cpp
+SRC = src/Authentication.cpp src/Channel.cpp src/Client.cpp src/join.cpp src/main.cpp src/PrivMsg.cpp src/Server.cpp src/Kick.cpp src/topic.cpp src/invite.cpp src/mode.cpp src/AnonyMsg.cpp
 
 OBJ_DIR = obj
 
@@ -6,7 +6,8 @@ OBJ = $(patsubst %, $(OBJ_DIR)/%, $(notdir $(SRC:.cpp=.o)))
 
 INC_DIR = inc
 
-FLGS = -Wall -Wextra -Werror -std=c++98
+FLGS = 
+# -Wall -Wextra -Werror -std=c++20 #-fsanitize=address
 
 NAME = ircserv
 

@@ -1,0 +1,61 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: aelbrahm <aelbrahm@student.1337.ma>        +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/02/03 15:57:19 by aelbrahm          #+#    #+#              #
+#    Updated: 2024/02/19 23:52:36 by aelbrahm         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+#================================#
+#         COLORS                 #
+#================================#
+BLU = \033[34;1m
+CYN = \033[36;1m
+PRP = \033[35;1m
+GRN = \033[32;1m 
+RED = \033[31;1m
+YLW = \033[33;1m
+C_CLS = \033[0m
+#================================#
+#         GLOBAL_VARIABLE        #
+#================================#
+CC = c++
+FLAGS =  
+# -Wall -Wextra -Werror 
+# -fsanitize=address
+SRCS = $(shell ls | grep -E ".+\.cpp")
+OBJS_O = $(SRCS:.cpp=.o)
+NAME = bin/ircbot
+OBJS = $(addprefix obj/, $(OBJS_O))
+DIR = bin obj
+RM = rm -rf
+HEADRES = Bot.hpp BtcPrice.hpp
+
+#================================#
+#            RULES               #
+#================================#
+all : $(NAME)
+
+$(NAME) : $(DIR) $(OBJS)
+		$(CC) $(FLAGS)  $(OBJS) -o $(NAME) -lcurl
+
+$(DIR) :
+		mkdir -p $(DIR)
+
+obj/%.o : %.cpp $(HEADRES)
+		@printf "|[ $(GRN)%-37s$(C_CLS)$(YLW) ]| \r" "Compailing... $(notdir $@)"
+		@$(CC) $(FLAGS) -c -lcurl $< -o $@
+
+clean :
+		$(RM) obj
+		printf "[ $(RED)%-30s$(C_CLS) ]\n" "Objects file got cleaned successfuly ❌"
+		sleep 1
+fclean : clean
+		$(RM) $(DIR)
+		printf "[ $(RED)%-30s$(C_CLS) ]\n" "Executable & Archives got removed successfuly ❌"
+re : fclean all
+.SILENT : $(DIR) $(NAME) clean fclean
