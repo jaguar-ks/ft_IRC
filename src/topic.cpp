@@ -54,7 +54,10 @@ bool	Client::Topic(vector<string> cmd) {
 				msg = ":" + this->NckName + "!" + this->RlName + "@" + this->HstName + " TOPIC " + cmd[1] + " " + cmd[2] + "\r\n";
 				if (it->second->isTopic() && it->second->isOperator(this))
 				{
-					it->second->setTopic(cmd[2]);
+					if (cmd[2].size() == 1)
+						it->second->setTopic("");
+					else
+						cmd[2].erase(0, 1);	
 					for (size_t i = 0; i < it->second->getMembers().size(); i++)
 						send(it->second->getMembers()[i]->getClntFd(), msg.c_str(), msg.size(), 0);
 				}
