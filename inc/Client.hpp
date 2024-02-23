@@ -82,6 +82,8 @@ class Client {
 			cout << vc[0] << endl;
 			return true;
 		}
+		void sendClientMsg(string&, vector<string>&);
+		void sendChannelMsg(string&, vector<string>&);
 		/****************************/
 		/*      [DebugActions]     */
 		bool		   infoChannel(vector<string>);
