@@ -18,8 +18,71 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
 	this->DoCmd["BTCPRICE"] = static_cast<bool (Client::*)(vector<string>)>(&Client::btcPrice);
 	this->DoCmd["ANONYMSG"] = static_cast<bool (Client::*)(vector<string>)>(&Client::anonyMsg);
 	this->DoCmd["KICK"] = static_cast<bool (Client::*)(vector<string>)>(&Client::Kick);
+	this->DoCmd["TOPIC"] = static_cast<bool (Client::*)(vector<string>)>(&Client::Topic);
+	this->DoCmd["MODE"] = static_cast<bool (Client::*)(vector<string>)>(&Client::modeCommand);
+	this->DoCmd["INVITE"] = static_cast<bool (Client::*)(vector<string>)>(&Client::inviteCommand);
+	this->DoCmd["INFOC"] = static_cast<bool (Client::*)(vector<string>)>(&Client::infoChannel);
+	this->DoCmd["PING"] = static_cast<bool (Client::*)(vector<string>)>(&Client::Pong);
     this->HstName = inet_ntoa(*ClntAddr);
 }
+		// bool		   infoChannel(vector<string>);
+
+bool Client::infoChannel(vector<string> cmd)
+{
+    try
+    {
+        
+    
+    for (size_t i = 0; i < cmd.size(); i++)
+    {
+        cout << cmd[i] << endl;
+    }
+    if (cmd.size() != 2)
+        return false;
+    Channel *chnl = Server::getInstance()->getChannels()[cmd[1]];
+    if (!chnl)
+        return false;
+    string msg;
+        msg +=  "Channel: " + cmd[1] + "\n";
+        msg +=  "Members: ";
+        for (size_t i = 0; i < chnl->getMembers().size(); i++)
+            msg +=  chnl->getMembers()[i]->getNckName() + " | ";
+        msg +=  "\n";
+        msg +=  "Operators: ";
+        for (size_t i = 0; i < chnl->getOperators().size(); i++)
+            msg +=  chnl->getOperators()[i]->getNckName() + " | ";
+        msg +=  "\n";
+        msg +=  "Invited: ";
+        for (size_t i = 0; i < chnl->getInvited().size(); i++)
+            msg +=  chnl->getInvited()[i]->getNckName() + " | ";
+        msg +=  "\n";
+        msg += "Topic: ";
+        if (chnl->isTopic()) msg += "✓ : ";
+        else msg += "✕ ";
+        msg += chnl->getTopic() + "\n";
+        msg += "Invite Only: ";
+        if (chnl->isInviteOnly()) msg += "✓ : ";
+        else msg += "✕ ";
+        if (chnl->isInviteOnly()) msg +=  chnl->getTopic();
+        msg +=  "\nPassword: ";
+        if (chnl->isLocked()) msg += "✓ : ";
+        else msg += "✕ ";
+        if (chnl->isLocked()) msg += chnl->getPassword();
+        msg +=  "\nLimit: ";
+        if (chnl->isLimited()) msg += "✓ : ";
+        else msg += "✕ ";
+        if (chnl->isLimited()) msg += to_string(chnl->getLimit());
+        msg +=  "\n";
+    send(this->ClntFd, msg.c_str(), msg.size(), 0);
+    return true;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+    return true;
+}
+
 
 bool	Client::anonyMsg(vector<string> cmd)
 {
@@ -163,7 +226,7 @@ bool    Client::QuitServer(vector<string> cmd) {
     }
     close(this->ClntFd);
     for (size_t i = 0; i < Friends.size(); i++)
-        SendMsg(*this, Friends[i], cmd[0], cmd[cmd.size()-1], ":QUIT:");
+        SendMsg(*this, Friends[i], cmd[0], cmd[cmd.size()-1], "Quit");
     // Server::getInstance()->RemoveClient(this->ClntFd);
     return true;
 }

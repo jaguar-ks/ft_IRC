@@ -6,7 +6,8 @@
  * @param cmd The command containing the channel name and the nickname of the client to be kicked.
  * @return True if the client was successfully kicked, false otherwise.
  */
-
+// :lmcht!~lmcht@197.230.30.146 KICK #chila lola :bye
+// :lmcht!~lmcht@127.0.0.1 KICK #a :nc :bye
 bool    Client::Kick(vector<string> cmd) {
     // for (size_t i = 0; i < cmd.size(); i++)
     //     cout << "[" + cmd[i] + "]" << endl;
@@ -27,7 +28,7 @@ bool    Client::Kick(vector<string> cmd) {
                         ErrorMsgGenrator(":ircserv 441 ", " " + cmd[2] + " " + cmd[1] + " :They aren't on that channel", *this);
                         return false;
                     }
-                    SendMsg(*this, *chnl, cmd[0], cmd[3], cmd[1]);
+                    SendMsg(*this, *chnl, cmd[0], cmd[3] , cmd[1] + " " + cmd[2]);
                     VcRemove((*it)->Chnls, cmd[1]);
                     chnl->kickUser(this, *it);
                     if (chnl->getMembers().empty()) {

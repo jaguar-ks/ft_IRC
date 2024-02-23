@@ -27,7 +27,7 @@ class Channel
     
     public :
     Channel(){};
-        void    autoAssignAdmin();
+        // void    autoAssignAdmin();
 
         void    addMember(Client* const);
         void    addOperator(Client* const);
@@ -49,6 +49,7 @@ class Channel
 
         void    kickUser(Client* constadmin, Client* constmember);
 
+        void    setTopicBool();
         void    setLimit(const size_t limit);
         void    setTopic(const string topic);
         void    setPassword(const string password);
@@ -71,6 +72,7 @@ class Channel
 
         Channel(Client* const client, string name);
         ~Channel();
-
+        void   modeCommand(vector<string> arg, Client* const client);
+        void   inviteCommand(vector<string> arg, Client* const client);
         const string   &getName() const;        
 };
