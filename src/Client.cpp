@@ -172,7 +172,7 @@ bool    Client::ParsAndExec() {
     if (this->DoCmd.find(this->Cmd[0]) != this->DoCmd.end())
         rt = (this->*DoCmd[this->Cmd[0]])(this->Cmd);
     else {
-        ErrorMsgGenrator(":ircserv 421 ", " " + this->Cmd[0] + " :Unknown command", *this);
+        ErrorMsgGenrator("IRCserv.1337.ma 421 ", " " + this->Cmd[0] + " :Unknown command", *this);
         rt = false;
     }
     if (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty()) {

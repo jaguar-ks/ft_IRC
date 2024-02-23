@@ -6,7 +6,7 @@
 #    By: aelbrahm <aelbrahm@student.1337.ma>        +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/02/03 15:57:19 by aelbrahm          #+#    #+#              #
-#    Updated: 2024/02/19 23:52:36 by aelbrahm         ###   ########.fr        #
+#    Updated: 2024/02/23 02:33:28 by aelbrahm         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,7 +24,7 @@ C_CLS = \033[0m
 #         GLOBAL_VARIABLE        #
 #================================#
 CC = c++
-FLAGS =  
+FLAGS =  -fsanitize=address
 # -Wall -Wextra -Werror 
 # -fsanitize=address
 SRCS = $(shell ls | grep -E ".+\.cpp")
