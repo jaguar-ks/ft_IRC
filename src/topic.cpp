@@ -51,7 +51,7 @@ bool	Client::Topic(vector<string> cmd) {
 			string msg;
 			if (it->second->isMember(this))
 			{
-				msg = ":" + this->NckName + "!" + this->RlName + "@" + this->HstName + " TOPIC " + cmd[1] + " :" + cmd[2] + "\r\n";
+				msg = ":" + this->NckName + "!" + this->RlName + "@" + this->HstName + " TOPIC " + cmd[1] + " " + cmd[2] + "\r\n";
 				if (it->second->isTopic() && it->second->isOperator(this))
 				{
 					it->second->setTopic(cmd[2]);
