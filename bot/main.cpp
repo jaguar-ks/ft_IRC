@@ -1,5 +1,7 @@
 #include "BtcPrice.hpp"
 #include "PrvMsg.hpp"
+#include <sstream>
+
 typedef Bot* (*botCreator[])(std::string host, std::string port, std::string pass,BotType type);
 
 Bot *createBtcBot(std::string host, std::string port, std::string pass, BotType type)
@@ -51,6 +53,16 @@ Bot* bot_init(char **argv)
 	}
 	return (bot);
 }
+
+bool	ParseFirstReplay(std::string reply)
+{
+	int pos = reply.find_first_of(' ');
+	reply.erase(0, pos + 1);
+	reply.erase(3, reply.size());
+	if (reply != "001")
+		return false;
+	return true;
+}
 int main(int ac, char **av)
 {
 	char buf[4096];
@@ -80,7 +92,16 @@ int main(int ac, char **av)
 		else
 		{
 			if (!reg)
+			{
 				std::cerr << buf << std::endl;
+				reg = true;
+				if (!ParseFirstReplay(buf))
+				{
+					close(bot->getSocketFd());
+					delete bot;
+					return 1;
+				}
+			}
 			bot->botReply(buf);
 		}
 	}
