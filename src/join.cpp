@@ -96,8 +96,7 @@ bool    Client::joinCommand(vector<string> join)
             Channel *chnl = new Channel(this, channels.front());
 
             Channels[channels.front()] = chnl;
-
-            // cout << "channel created" << Channels[channels.front()]->getName() << " : " << channels.front() << endl;
+            cout << "channel created" << Channels[channels.front()]->getName() << " : " << channels.front() << endl;
             SendMsg(*this, *this, join[0], "", channels.front());
             ErrorMsgGenrator(":IRCserv.1337.ma 353 ", " = " + channels.front() + " :@"+this->NckName, *this);
             ErrorMsgGenrator(":IRCserv.1337.ma 366 ", " " + channels.front() + " :End of /NAMES list.", *this);

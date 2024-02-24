@@ -51,18 +51,36 @@ bool	Client::Topic(vector<string> cmd) {
 			string msg;
 			if (it->second->isMember(this))
 			{
-				msg = ":" + this->NckName + "!" + this->RlName + "@" + this->HstName + " TOPIC " + cmd[1] + " :" + cmd[2] + "\r\n";
+				msg = ":" + this->NckName + "!" + this->RlName + "@" + this->HstName + " TOPIC " + cmd[1] + " ";
 				if (it->second->isTopic() && it->second->isOperator(this))
 				{
-					it->second->setTopic(cmd[2]);
+					if (cmd[2].size() == 1)
+					{
+						it->second->setTopic("");
+						cmd[2].erase(0, 1);
+					}	
+					else
+						it->second->setTopic(cmd[2]);	
 					for (size_t i = 0; i < it->second->getMembers().size(); i++)
+					{
+						msg += cmd[2] + "\r\n";
 						send(it->second->getMembers()[i]->getClntFd(), msg.c_str(), msg.size(), 0);
+					}	
 				}
 				else if (!it->second->isTopic())
 				{
-					it->second->setTopic(cmd[2]);
+					if (cmd[2].size() == 1)
+					{
+						it->second->setTopic("");
+						cmd[2].erase(0, 1);
+					}	
+					else
+						it->second->setTopic(cmd[2]);	
 					for (size_t i = 0; i < it->second->getMembers().size(); i++)
+					{
+						msg += cmd[2] + "\r\n";
 						send(it->second->getMembers()[i]->getClntFd(), msg.c_str(), msg.size(), 0);
+					}	
 				}
 				else
 					ErrorMsgGenrator(":IRCserv.1337.ma 482 ", " " + cmd[0] + " :You're not channel operator", *this);
