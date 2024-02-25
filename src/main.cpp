@@ -15,10 +15,16 @@ int main(int ac, char **av) {
             exit(1);
         }
         Server *srv = Server::InstanceServer(prt, pwd);
+		char hstname[256];
+		Server *srv = Server::InstanceServer(prt, pwd);
+		if (gethostname(hstname, sizeof(hstname)) == -1) {
+            cerr << "Error :" << strerror(errno) << endl;
+            exit(1);
+        }
 		cout << '\n' << srv->Welcome() << endl;
         cout << WHT <<"\t\t\t[Server Started]" << '\n' << C_CLS << endl;
-		cout << BLU << "[ INFO ]\t" << WHT << SERVER_NAME 
-		<< YLW << ":" << prt << C_CLS << " " << WHT << srv->getLocalTime() << endl; 
+		cout << BLU << "[ INFO ]\t" << WHT << hstname 
+		<< YLW << ":" << prt << C_CLS << " " << WHT << srv->getLocalTime() << endl;  
         while (!interpted)
         {
 			try {
