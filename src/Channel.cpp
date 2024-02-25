@@ -2,6 +2,7 @@
 
 Channel::~Channel()
 {
+    // delete this;
 }
 
 /**
@@ -60,36 +61,34 @@ void    Channel::invite(Client* const client)
         std::cerr << e.what() << '\n';
     }
 }
+
 void    Channel::removeMember(Client* const member)
 {
     try
     {
-        for (vector <Client *>::iterator it = this->members.begin(); it != this->members.end(); it++)
-        {
+        vector<Client *>::iterator it = this->members.begin();
+        for (; it != this->members.end(); it++)
             if ((*it)->getClntFd() == member->getClntFd())
-            {
-                this->members.erase(it);
-                break;
-            }
-        }
+                break ;
+        if (it != this->members.end())
+            this->members.erase(it);
     }
     catch(const std::exception& e)
     {
         std::cerr << e.what() << '\n';
     }
 }
+
 void    Channel::removeOperator(Client* const op)
 {
     try
     {
-        for (vector <Client *>::iterator it = this->operators.begin(); it != this->operators.end(); it++)
-        {
+        vector<Client *>::iterator it = this->operators.begin();
+        for (; it != this->operators.end(); it++)
             if ((*it)->getClntFd() == op->getClntFd())
-            {
-                this->operators.erase(it);
-                break;
-            }
-        }
+                break ;
+        if (it != this->operators.end())
+            this->operators.erase(it);
     }
     catch(const std::exception& e)
     {
@@ -101,14 +100,12 @@ void    Channel::removeInvited(Client* const client)
 {
     try
     {
-        for (vector <Client *>::iterator it = this->invited.begin(); it != this->invited.end(); it++)
-        {
+        vector<Client *>::iterator it = this->invited.begin();
+        for (; it != this->invited.end(); it++)
             if ((*it)->getClntFd() == client->getClntFd())
-            {
-                this->invited.erase(it);
-                break;
-            }
-        }
+                break ;
+        if (it != this->invited.end())
+            this->invited.erase(it);
     }
     catch(const std::exception& e)
     {
@@ -128,26 +125,17 @@ vector <Client*> &Channel::getOperators()
 
 bool    Channel::isMember(Client* const member) const
 {
-    for (vector<Client*>::const_iterator it = this->members.begin(); it != this->members.end(); it++)
-        if ((*it)->getClntFd() == member->getClntFd())
-            return true;
-    return (false);
+    return VcFind(this->members, member);
 }
 
 bool    Channel::isOperator(Client* const admin) const
 {
-    for (vector<Client*>::const_iterator it = this->operators.begin(); it != this->operators.end(); it++)
-        if ((*it)->getClntFd() == admin->getClntFd())
-            return true;
-    return (false);
+    return VcFind(this->operators, admin);
 }
 
 bool    Channel::isInvited(Client* const client) const
 {
-    for (vector<Client*>::const_iterator it = this->invited.begin(); it != this->invited.end(); it++)
-        if ((*it)->getClntFd() == client->getClntFd())
-            return true;
-    return (false);
+    return VcFind(this->invited, client);
 }
 
 void    Channel::setOperator(Client* const client)
@@ -155,7 +143,6 @@ void    Channel::setOperator(Client* const client)
     try
     {
         this->addOperator(client);
-        // this->removeMember(client);
     }
     catch(const std::exception& e)
     {
@@ -167,7 +154,6 @@ void    Channel::unsetOperator(Client* const client)
 {
     try
     {
-        // this->addMember(client);
         this->removeOperator(client);
     }
     catch(const std::exception& e)
@@ -183,30 +169,7 @@ void    Channel::kickUser(Client* const admin, Client* const user)
         if (this->isOperator(admin) && (this->isMember(user)))
         {
             this->removeMember(user);
-        }
-        else if (this->isOperator(admin) && this->isOperator(user))
-        {
             this->removeOperator(user);
-        }
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-    }
-}
-
-void    Channel::autoAssignAdmin()
-{
-    try
-    {
-        if (members.size() > 0)
-        {
-            this->addOperator(this->members[0]);
-            // this->removeMember(this->members[0]);
-        }
-        else
-        {
-            this->~Channel();
         }
     }
     catch(const std::exception& e)
@@ -219,6 +182,11 @@ void    Channel::setLimit(const size_t limit)
 {
     this->privelege.limit = true;
     this->limit = limit;
+}
+
+void    Channel::setTopicBool()
+{
+    this->privelege.topic = true;
 }
 
 void    Channel::setTopic(const std::string topic)

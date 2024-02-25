@@ -19,46 +19,68 @@ Client::Client(int ClntFd, in_addr *ClntAddr) : ClntFd(ClntFd), Regestred(false)
 	this->DoCmd["ANONYMSG"] = static_cast<bool (Client::*)(vector<string>)>(&Client::anonyMsg);
 	this->DoCmd["KICK"] = static_cast<bool (Client::*)(vector<string>)>(&Client::Kick);
 	this->DoCmd["TOPIC"] = static_cast<bool (Client::*)(vector<string>)>(&Client::Topic);
-    this->HstName = inet_ntoa(*ClntAddr);
+	this->DoCmd["MODE"] = static_cast<bool (Client::*)(vector<string>)>(&Client::modeCommand);
+	this->DoCmd["INVITE"] = static_cast<bool (Client::*)(vector<string>)>(&Client::inviteCommand);
+	this->DoCmd["INFOC"] = static_cast<bool (Client::*)(vector<string>)>(&Client::infoChannel);
+	this->DoCmd["PONG"] = static_cast<bool (Client::*)(vector<string>)>(&Client::Pong);
+    this->DoCmd["DATE"] = static_cast<bool (Client::*)(vector<string>)>(&Client::getDate);
+    this->DoCmd["PART"] = static_cast<bool (Client::*)(vector<string>)>(&Client::partCommand);
+	this->HstName = inet_ntoa(*ClntAddr);
 }
 
-
-
-bool	Client::anonyMsg(vector<string> cmd)
+bool Client::pong(vector<string> cmd)
 {
-	if (cmd.size() == 3)
-	{
-		cout << "here" << endl;
-		map<int, Client>::iterator it = Server::getInstance()->getClients().begin();
-		map<int, Client>::iterator ite = Server::getInstance()->getClients().end();
-		for (; it != ite; it++)
-			if (it->second.getNckName() == "AnonyMsg")
-				break;
-		if (it != ite)
-			SendMsg(*this, it->second, cmd[0], cmd[2], cmd[1]);
-		else
-			cerr << "ANONYMSG: Invalid Nickname" << endl;
-	}
-	return true;
+    (void)cmd;
+    return true;
 }
 
-bool	Client::btcPrice(vector<string> cmd) {
-	
-	if (cmd.size() == 1 && cmd[0] == "BTCPRICE")
-	{
-		map<int, Client>::iterator it = Server::getInstance()->getClients().begin();
-		map<int, Client>::iterator ite = Server::getInstance()->getClients().end();
-		for (; it != ite; it++)
-			if (it->second.getNckName() == "btcPrice")
-				break;
-		if (it != ite)
-			SendMsg(*this, it->second, cmd[0], "BTC Price: ", ":BTCPRICE:");
-		else
-			cerr << "BTCPRICE BOT is currently out of service" << endl;
-		return true;
-	}
-	cerr << "BTCPRICE: Invalid command forma" << endl;
-	return false;
+void listClient(vector<Client *> vc, string& msg, string const &grade) {
+    msg +=  grade;
+    for (size_t i = 0; i < vc.size(); i++)
+    {
+        msg +=  vc[i]->getNckName() + " | ";
+    }
+    msg +=  "\n";
+}
+
+bool Client::infoChannel(vector<string> cmd)
+{
+    try
+    {    
+        if (cmd.size() != 2)
+            return false;
+        Channel *chnl = Server::getInstance()->getChannels()[cmd[1]];
+        if (!chnl)
+            return false;
+        string msg;
+        msg +=  "Channel: " + cmd[1] + "\n";
+        listClient(chnl->getMembers(), msg, "Members: ");
+        listClient(chnl->getOperators(), msg, "Operators: ");
+        listClient(chnl->getInvited(), msg, "Invited: ");
+        msg += "Topic: ";
+        if (chnl->isTopic()) msg += "✓ : ";
+        else msg += "✕ ";
+        msg += chnl->getTopic() + "\n";
+        msg += "Invite Only: ";
+        if (chnl->isInviteOnly()) msg += "✓ : ";
+        else msg += "✕ ";
+        msg +=  "\nPassword: ";
+        if (chnl->isLocked()) msg += "✓ : ";
+        else msg += "✕ ";
+        if (chnl->isLocked()) msg += chnl->getPassword();
+        msg +=  "\nLimit: ";
+        if (chnl->isLimited()) msg += "✓ : ";
+        else msg += "✕ ";
+        if (chnl->isLimited()) msg += to_string(chnl->getLimit());
+        msg +=  "\n";
+        send(this->ClntFd, msg.c_str(), msg.size(), 0);
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+    return true;
 }
 
 /**
@@ -78,7 +100,7 @@ void    Client::setCmd(string line) {
             tmp = line.substr(i+1);
             i = line.size() - 1;
         }
-        if (line.at(i) != ' ')
+        else if (line.at(i) != ' ')
             tmp += line.at(i);
         if (line.at(i) == ' ' || i == line.size() - 1) {
             for (; i+1 < line.size() && line.at(i+1) == ' '; i++);
@@ -88,6 +110,26 @@ void    Client::setCmd(string line) {
     }
 }
 
+void Client::Welcome() {
+	stringstream	wMsg;
+	const string&	nickName = this->getNckName();
+	wMsg << ":" << SERVER_NAME << " 001 " << nickName
+	<< " : Welcome to the Internet Relay Network" << "\r\n";
+	wMsg <<":" << SERVER_NAME << " 002 " << nickName
+	<< " : Your host is " << SERVER_NAME << ", running version " << VERSION << "\r\n";
+	wMsg << ":" << SERVER_NAME << " 003 " << nickName
+	<< " :This " << SERVER_NAME << " server was created " << Server::getInstance()->getLocalTime() << "\r\n";
+	wMsg << ":" << "server 004 " << nickName
+	<< " " << SERVER_NAME << " Version relaisse "<< VERSION << " <available umodes>"
+	<< " <available cmodes>" << "\r\n";
+	if (send(this->ClntFd, wMsg.str().c_str(), wMsg.str().size(), 0) <= 0)
+		cerr << "Error: " << strerror(errno) << endl;
+	// send(this->ClntFd, wMsg.str().c_str(), wMsg.str().size(), 0);
+    // ErrorMsgGenrator(":IRCserv.1337.ma 001 ", " Welcome to the KAMIKAZI Network, " + this->NckName, *this);
+    // ErrorMsgGenrator(":IRCserv.1337.ma 002 ", " Your host is IRCserv.1337.ma, running version 0.1.0", *this);
+    // ErrorMsgGenrator(":IRCserv.1337.ma 003 ", " This server was created " + localTime(time(0)), *this);
+    // ErrorMsgGenrator(":IRCserv.1337.ma 004 ", " IRCserv.1337.ma 0.1.0", *this);
+}
 
 /**
  * @brief Parses and executes the client command.
@@ -103,25 +145,29 @@ void    Client::setCmd(string line) {
 bool    Client::ParsAndExec() {
     bool rt;
 
+    this->Cmd.clear();
     this->setCmd(this->Msg);
-    // for (size_t i = 0; i < this->Cmd.size(); i++)
-    //     cout << this->Cmd[i] << ((i + 1 != this->Cmd.size()) ? " | " : "\n");
     for (size_t i = 0; i < this->Cmd[0].size(); i++)
         if (isalpha(this->Cmd[0][i]) && islower(this->Cmd[0][i]))
             this->Cmd[0][i] = toupper(this->Cmd[0][i]);
+    if (!this->Regestred && (this->Cmd[0] != "PASS" && this->Cmd[0] != "NICK" && this->Cmd[0] != "USER" && this->Cmd[0] != "QUIT")) {
+        ErrorMsgGenrator(":IRCserv.1337.ma 451 ", " " + this->Cmd[0] + " :You have not registered", *this);
+        return false;
+    }
     if (this->DoCmd.find(this->Cmd[0]) != this->DoCmd.end())
         rt = (this->*DoCmd[this->Cmd[0]])(this->Cmd);
     else {
-        ErrorMsgGenrator(":ircserv 421 ", " " + this->Cmd[0] + " :Unknown command", *this);
+        ErrorMsgGenrator(":IRCserv.1337.ma 421 ", " " + this->Cmd[0] + " :Unknown command", *this);
         rt = false;
     }
     if (!this->SrvPss.empty() && !this->NckName.empty() && !this->UsrName.empty()) {
         if (!this->Regestred)
-            Server::RegistMsgReply(*this);
+            this->Welcome();
+		cout << BLU << "[ INFO ]\t" << WHT << this->getHstName() << " Authenticat Successfuly to "
+		<< YLW << SERVER_NAME << C_CLS << " " << WHT << localTime(time(0)) << endl; 
         this->Regestred = true;
     }
     this->Msg = "";
-    this->Cmd.clear();
     return rt;
 }
 
@@ -158,16 +204,13 @@ bool    Client::QuitServer(vector<string> cmd) {
     if (cmd.size() == 1)
         cmd.push_back("");
     for (size_t i = 0; i < this->Chnls.size(); i++) {
-        vector<Client *> tmp = Server::getInstance()->getChannels()[this->Chnls[i]]->getMembers();
-        for (size_t j = 0; j < tmp.size(); j++) {
-            if ((!Friends.empty() || !VcFind(Friends, *tmp[j])) && tmp[j] != this)
-                Friends.push_back(*tmp[j]);
+        Channel *chnl = Server::getInstance()->getChannels()[this->Chnls[i]];
+        SendMsg(*this, *chnl, cmd[0], cmd[cmd.size()-1], "Quit");
+        if (chnl->getOperators().size() == 1 && chnl->isOperator(this) && chnl->getMembers().size() > 1) {
+            chnl->addOperator(chnl->getMembers()[chnl->getMembers()[0] == this]);
+            SendMsg(*this, *chnl, "MODE", "", this->Chnls[i] + " +o " + chnl->getMembers()[chnl->getMembers()[0] == this]->NckName);
         }
     }
-    for (size_t i = 0; i < Friends.size(); i++)
-        SendMsg(*this, Friends[i], cmd[0], ":" + cmd[cmd.size()-1], ":QUIT:");
-    Server::getInstance()->RemoveClient(this->ClntFd);
-    close(this->ClntFd);
     return true;
 }
 
@@ -184,8 +227,7 @@ void    ErrorMsgGenrator(string const &Prefix, string const &Sufix, Client &Send
     string msg = Prefix + ((Sender.getNckName().empty()) ? "*" : Sender.getNckName())
                 + Sufix + "\r\n";
 
-    if (send(Sender.getClntFd(), msg.c_str(), msg.size(), 0) < 0)
-        Server::getInstance()->RemoveClient(Sender.getClntFd());
+    send(Sender.getClntFd(), msg.c_str(), msg.size(), 0);
 }
 
 
@@ -200,12 +242,11 @@ void    ErrorMsgGenrator(string const &Prefix, string const &Sufix, Client &Send
  */
 
 void    SendMsg(Client &Sender, Client &Reciver, string const &Cmd, string const &Msg, string const &Trg) {
-    string msg = ":" + Sender.getNckName() + "!~" + Sender.getRlName()
+    string msg = ":" + Sender.getNckName() + "!" + Sender.getRlName()
                 + "@" + Sender.getHstName() + " " + Cmd + " " + Trg
-                + " :" + Msg + "\r\n";
+                + ((Msg.empty()) ? "\r\n" : " :" + Msg + "\r\n");
 
-    if (send(Reciver.getClntFd(), msg.c_str(), msg.size(), 0) < 0)
-        Server::getInstance()->RemoveClient(Reciver.getClntFd());
+    send(Reciver.getClntFd(), msg.c_str(), msg.size(), 0);
 }
 
 
@@ -224,14 +265,13 @@ void    SendMsg(Client &Sender, Client &Reciver, string const &Cmd, string const
  */
 
 void    SendMsg(Client &Sender, Channel &Reciver, string const &Cmd, string const &Msg, string const &Trg) {
-    string msg = ":" + Sender.getNckName() + "!~" + Sender.getRlName()
+    string msg = ":" + Sender.getNckName() + "!" + Sender.getRlName()
                 + "@" + Sender.getHstName() + " " + Cmd + " " + Trg
-                + " :" + Msg + "\r\n";
+                + ((Msg.empty()) ? "\r\n" : " :" + Msg + "\r\n");
 
     for (size_t i = 0; i < Reciver.getMembers().size(); i++)
-        if (Sender.getClntFd() != Reciver.getMembers()[i]->getClntFd())
-            if (send(Reciver.getMembers()[i]->getClntFd(), msg.c_str(), msg.size(), 0) < 0)
-                Server::getInstance()->RemoveClient(Reciver.getMembers()[i]->getClntFd());
+        send(Reciver.getMembers()[i]->getClntFd(), msg.c_str(), msg.size(), 0);
 }
+
 
 

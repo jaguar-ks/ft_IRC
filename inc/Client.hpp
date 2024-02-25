@@ -16,11 +16,11 @@
 #include <sstream>
 #include <cstdio> 
 #include "Server.hpp"
-#include <curl/curl.h>
+// #include <curl/curl.h>
 
 using namespace std;
 
-class Server;
+// class Server;
 
 class Channel;
 
@@ -53,18 +53,22 @@ class Client {
 		const string   &getHstName(void) const {return this->HstName;}
 		const string   &getRlName(void) const {return this->RlName;}
 		vector<string> &getChnls(void) {return this->Chnls;}
+		string		   getCmd(void) {return this->Cmd[0];}
         /****************************/
         /*         [SETTERS]        */
 		void		   setCmd(string);
 		void		   setMsgDzeb(string rep) {this->Msg = rep;}
+		void		   setChannel(string ch) {this->Chnls.push_back(ch);}
 
         /****************************/
         /*        [OPERATORS]       */
-        bool operator==(Client &obj) {return this->ClntFd == obj.ClntFd;}
+        bool operator==(const Client &obj) const {return this->ClntFd == obj.ClntFd;}
 		/****************************/
         /*      [ClientActions]     */
 		bool		   ParsAndExec();
 		bool		   joinCommand(vector<string>);
+		bool		   modeCommand(vector<string>);
+		bool		   inviteCommand(vector<string>);
 		bool		   SendPrvMsg(vector<string>);
 		bool		   Info(vector<string>);
 		bool		   setNckName(vector<string>);
@@ -74,11 +78,32 @@ class Client {
 		bool		   btcPrice(vector<string>);
 		bool		   anonyMsg(vector<string>);
 		bool		   Kick(vector<string>);
+		bool		   pong(vector<string>);
 		bool		   Topic(vector<string>);
+		bool 		   partCommand(vector<string>);
+		bool		   getDate(vector<string>);
+		bool		   Pong(vector<string> vc) {
+			(void)vc;
+			// cout << vc[0] << endl;
+			return true;
+		}
+		void		   Welcome();
 		/****************************/
+        /*        [Client Action Utils]       */
+		void	sendClientMsg(string&, vector<string>&);
+		void	sendChannelMsg(string&, vector<string>&);
+		void	sendBotMsg(Client* Sender,string& target, vector<string>& cmd);
+		bool	setNewTopic(vector<string>& cmd);
+		bool	listChannelTopic(vector<string>& cmd);
+		bool	noEnParam(vector<string>& cmd);
+		/****************************/
+		/*      [DebugActions]     */
+		bool		   infoChannel(vector<string>);
 };
 
 void    ErrorMsgGenrator(string const &Prefix, string const &Sufix, Client &Sender);
 void	SendMsg(Client &Sender, Client &Reciver, string const &Cmd, string const &Msg, string const &Trg);
 void    SendMsg(Client &Sender, Channel &Reciver, string const &Cmd, string const &Msg, string const &Trg);
+// void    SendMsg(Client &Sender, Channel &Reciver, string const &Cmd, string const &Msg, string const &Trg);
 vector<string> getTargets(string, char);
+typedef bool (Client::*topControl[])(vector<string>& cmd);

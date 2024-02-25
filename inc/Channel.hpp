@@ -1,7 +1,8 @@
 #pragma once
-#ifndef CHANNEL_HPP
-#define CHANNEL_HPP
-# include "Server.hpp"
+
+#include "Client.hpp"
+#include <queue>
+
 class Client;
 
 using namespace std;
@@ -27,7 +28,6 @@ class Channel
     
     public :
     Channel(){};
-        void    autoAssignAdmin();
 
         void    addMember(Client* const);
         void    addOperator(Client* const);
@@ -49,6 +49,7 @@ class Channel
 
         void    kickUser(Client* constadmin, Client* constmember);
 
+        void    setTopicBool();
         void    setLimit(const size_t limit);
         void    setTopic(const string topic);
         void    setPassword(const string password);
@@ -71,7 +72,9 @@ class Channel
 
         Channel(Client* const client, string name);
         ~Channel();
+        void   modeCommand(vector<string> arg, Client* const client);
+        void   inviteCommand(vector<string> arg, Client* const client);
+        void   partCommand(Client* const client, queue<string>& messages);
 
         const string   &getName() const;        
 };
-#endif

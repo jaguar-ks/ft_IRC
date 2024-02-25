@@ -1,5 +1,14 @@
 #include "Server.hpp"
 
+void	errorLog(string msg) {
+	cerr << RED <<"[ ERROR ]\t" << YLW << msg << C_CLS << endl;
+}
+
+void		CmdLogs(string cmd, string executer)
+{
+	if (!cmd.empty())
+		cout << GRN << "[ CMD  ]\t" << YLW  << cmd << " Command Executed by " << executer << C_CLS <<" " << WHT << localTime(time(0)) << C_CLS << endl;
+}
 Server *Server::Instance = NULL;
 
 std::string	localTime(time_t now)
@@ -11,6 +20,25 @@ std::string	localTime(time_t now)
 
 bool isdigit_b(int c) {return isdigit(c);}
 
+int Server::getClientByNckName(string &NckName) {
+    map<int, Client>::const_iterator it = this->Clients.begin();
+    for (; it != this->Clients.end(); it++)
+        if (it->second.getNckName() == NckName)
+            return it->second.getClntFd();
+    return -1;
+}
+
+Server::~Server() {
+    for (map<string, Channel*>::iterator it = this->Channels.begin(); it != this->Channels.end(); it++)
+        delete it->second;
+    this->Channels.clear();
+    for (map<int, Client>::iterator it = this->Clients.begin(); it != this->Clients.end(); it++)
+        close(it->first);
+    this->Clients.clear();
+    this->ClFds.clear();
+    close(this->SockFd);
+}
+
 /*
     This member function open a socket
     for the server and bind it otherwise
@@ -20,21 +48,33 @@ bool isdigit_b(int c) {return isdigit(c);}
 */
 void Server::SetSockFd(string &port) {
     struct addrinfo *ptr, *tmp, hnt;
+    char    str[256];
+    if (gethostname(str, sizeof(str)) < 0) {
+		errorLog("Getting Host Name : " + string(strerror(errno)));
+        exit(1);
+    }
     memset(&hnt, 0, sizeof(hnt));
     hnt.ai_family = AF_INET;
     hnt.ai_protocol = IPPROTO_TCP;
     hnt.ai_socktype = SOCK_STREAM;
-    int status = getaddrinfo("0.0.0.0", port.c_str(), &hnt, &ptr), opt_val = 1;
+    // int status = getaddrinfo("0.0.0.0", port.c_str(), &hnt, &ptr), opt_val = 1;
+    int status = getaddrinfo(str, port.c_str(), &hnt, &ptr), enable = 1;
     if (status) {
-        cerr << "Getting Address Info : " << gai_strerror(status) << endl;
+		errorLog("Getting Address Info : " + string(gai_strerror(status)));
         exit(1);
     }
     for (tmp = ptr; tmp; tmp = tmp->ai_next) {
         this->SockFd = socket(tmp->ai_family, tmp->ai_socktype, tmp->ai_protocol);
         if (this->SockFd < 0)
             continue;
-        setsockopt(this->SockFd, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val));
-        if (bind(this->SockFd, tmp->ai_addr, tmp->ai_addrlen)) {
+        if (setsockopt(this->SockFd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof enable) == -1)
+		{
+		    freeaddrinfo(ptr);
+			close(this->SockFd);
+			throw std::runtime_error(strerror(errno));
+		}
+        if (bind(this->SockFd, tmp->ai_addr, tmp->ai_addrlen))
+        {
             close(this->SockFd);
             continue;
         }
@@ -42,10 +82,10 @@ void Server::SetSockFd(string &port) {
     }
     freeaddrinfo(ptr);
     if (!tmp) {
-        cerr << "Binding The Socket : " << strerror(errno) << endl;
         close(this->SockFd);
-        exit(1);
+        throw std::runtime_error("Error: Could not Bind the socket");
     }
+	this->isConnected = true;
 }
 
 /*
@@ -56,23 +96,38 @@ void Server::SetSockFd(string &port) {
     an error is getting printed discribing
     what happend
 */
+void	Server::SocketListen( void )
+{
+	if (!this->isConnected){
+		Instance->SetSockFd(this->Lport);
+		fcntl(Instance->SockFd, F_SETFD, O_NONBLOCK);
+			
+		if (listen(Instance->SockFd, max_connection)) {
+			close(Instance->SockFd);
+			throw std::runtime_error(strerror(errno));
+		}
+		Instance->ClFds.push_back(pollfd());
+		Instance->ClFds.back().fd = Instance->SockFd;
+		Instance->ClFds.back().events = POLLIN;
+	}
+	return ;
+}
 Server *Server::InstanceServer(string &port, string &psw) {
     if (!Instance) {
         Instance = new Server();
-        if (port.find_first_not_of("0123456789") != string::npos){
-            cerr << "Invalid Argument: " << (!psw.empty() ? "The port must contain only numbers." : "Empty Password.") << endl;
+        if (port.find_first_not_of("0123456789") != string::npos || atoi(port.c_str()) < 1024){
+			(port.empty() ? errorLog("Invalid Argument: Empty Port field.") : errorLog("Invalid Argument: The port must contain only numbers."));
             exit(1);
         }
-        Instance->SetSockFd(port);
-        Instance->Pswd = psw;
-        if (listen(Instance->SockFd, max_connection)) {
-            cerr << "Listening : " << strerror(errno) << endl;
-            close(Instance->SockFd);
-            exit(1);
+        for (size_t i = 0; i < psw.size(); i++) {
+            if (!isalnum(psw[i])) {
+				errorLog("Error : Invalide PassWord policy");
+                exit(1);
+            }
         }
-        Instance->ClFds.push_back(pollfd());
-        Instance->ClFds.back().fd = Instance->SockFd;
-        Instance->ClFds.back().events = POLLIN;
+        Instance->Lport = port;
+		Instance->Pswd = psw;
+		Instance->isConnected = false;
 		Instance->LocalTime = localTime(time(0));
     }
     return Instance;
@@ -81,14 +136,16 @@ Server *Server::InstanceServer(string &port, string &psw) {
 // Welcoming Function
 string Server::Welcome() {
     string Wlcm;
+    Wlcm += GRN;
     Wlcm += "\t██╗    ██╗███████╗██╗      ██████╗ ██████╗ ███╗   ███╗███████╗\n";
     Wlcm += "\t██║    ██║██╔════╝██║     ██╔════╝██╔═══██╗████╗ ████║██╔════╝\n";
     Wlcm += "\t██║ █╗ ██║█████╗  ██║     ██║     ██║   ██║██╔████╔██║█████╗  \n";
     Wlcm += "\t██║███╗██║██╔══╝  ██║     ██║     ██║   ██║██║╚██╔╝██║██╔══╝  \n";
     Wlcm += "\t╚███╔███╔╝███████╗███████╗╚██████╗╚██████╔╝██║ ╚═╝ ██║███████╗\n";
     Wlcm += "\t ╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝\n";
-    Wlcm += "\t\t\tMade By : 0xJ4GU4R | 0x54B4 | 0xF4551\n";
-    Wlcm += "For help type: HELP\n";
+    Wlcm += "\t\tKamikazesābā IRC\n";
+    Wlcm += "\t\tMade By : 0xJ4GU4R | 0xSABA | 0xM0RPH5\n";
+    Wlcm += C_CLS;
     return Wlcm;
 }
 
@@ -99,14 +156,23 @@ string Server::Welcome() {
     according to which file
 */
 void Server::launchServer() {
-    int count = poll(&this->ClFds[0], this->ClFds.size(), 0);
+    int count;
+	this->SocketListen();
+	count = poll(&this->ClFds[0], this->ClFds.size(), 0);
     if (count < 0) {
-        cerr << "Poll() function : " << strerror(errno) << endl;
-        // exit(1);
+		close(this->SockFd);
+        throw std::runtime_error(strerror(errno));
     }
     for (size_t i = 0; i < this->ClFds.size(); i++)
-        if (this->ClFds[i].revents & POLLIN)
-            (this->SockFd == this->ClFds[i].fd) ? this->JoinServer() : this->ReplyToClient(this->Clients[this->ClFds[i].fd]); //? this->JoinServer() : this->;  // ? new client : client request;
+    {
+		if (this->ClFds[i].revents & POLLIN)
+		{
+			if (this->SockFd == this->ClFds[i].fd)
+				this->JoinServer();
+			else
+				this->ReplyToClient(this->Clients[this->ClFds[i].fd]);
+		}
+	}   
 }
 
 /*
@@ -123,17 +189,17 @@ bool Server::JoinServer() {
     memset(&ClntAddr, 0, len);
     int ClntFd = accept(this->SockFd, (sockaddr *)&ClntAddr, &len);
     if (ClntFd < 0) {
-        cerr << "Establishing Connection : " << strerror(errno) << endl;
+		errorLog("Establishing Connection : " + string(strerror(errno)));
         return false;
     }
+    fcntl(ClntFd, F_SETFD, O_NONBLOCK);
     this->Clients.insert(pair<int, Client>(ClntFd, Client(ClntFd, &ClntAddr.sin_addr)));
+	cout << BLU << "[ INFO ]\t" << WHT << this->Clients[ClntFd].getHstName() 
+				<< " Establishing Connection to " << YLW 
+				<< SERVER_NAME << ":" << this->Lport << C_CLS <<" " << WHT << localTime(time(0)) << C_CLS << endl;
     this->ClFds.push_back(pollfd());
     this->ClFds.back().fd = ClntFd;
     this->ClFds.back().events = POLLIN;
-    map<int, Client>::iterator it = this->Clients.begin();
-    cout << "\t---|Clients List|---" << endl;
-    for (;it != this->Clients.end(); it++)
-        cout << "Client:[" << it->second.getNckName() << "]in machine:[" << it->second.getHstName() << "] using socket[" << it->first <<"]" << endl;
     return true;
 }
 
@@ -156,6 +222,11 @@ bool	BufferFeed(Client &Clnt, string &buffer)
 		Clnt.setMsgDzeb(tmp);
 		if (!Clnt.getMsg().empty())
             parsed = Clnt.ParsAndExec();
+        if (Clnt.getCmd() == "QUIT") {
+            Server::getInstance()->RemoveClient(Clnt.getClntFd());
+            return false;
+        }
+		CmdLogs(Clnt.getCmd(), Clnt.getHstName());
 		tmp.clear();
 	}
     buffer = "";
@@ -168,6 +239,9 @@ bool	BufferFeed(Client &Clnt, string &buffer)
     to what does he sent otherwise an error
     discribing the problem is printed
 */
+
+
+
 bool Server::ReplyToClient(Client &Clnt) {
     char    Buff[3000];
     memset(Buff, 0, 3000);
@@ -175,45 +249,19 @@ bool Server::ReplyToClient(Client &Clnt) {
     if (val > 0 && strlen(Buff)) {
         string Msg(Buff);
         Clnt.getBff() += Msg;
-	    // cout << "val: " << Msg << "{}" << endl;
-        if (Clnt.getBff().find('\n') == string::npos)
+	    if (Clnt.getBff().find('\n') == string::npos)
             return true;
-        // Msg.erase(Clnt.getMsg().size() - 2);
         Msg.erase(0, Msg.find_first_not_of(" \t\n\v\f\r"));
-        cout << Msg << endl;
-		// cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Msg << endl;
-		return BufferFeed(Clnt, Clnt.getBff());
-			// return Clnt.ParsAndExec();
-        // return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
-    }
-	cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
+    	return BufferFeed(Clnt, Clnt.getBff());
+	}
+	cout << BLU << "[ INFO ]\t" << WHT << "Connection Closed with client:" << YLW 
+				<< Clnt.getHstName() << C_CLS <<" " << WHT << localTime(time(0)) << C_CLS << endl;
+    vector<string> vc;
+    vc.push_back("QUIT");
+    Clnt.QuitServer(vc);
     this->RemoveClient(Clnt.getClntFd());
     return false;
 }
-/*
-    Taking the incomming message form
-    the client and and behaving acordding
-    to what does he sent otherwise an error
-    discribing the problem is printed
-*/
-// bool Server::ReplyToClient(Client &Clnt) {
-//     char    Buff[3000];
-//     memset(Buff, 0, 3000);
-//     int val = recv(Clnt.getClntFd(), Buff, 3000, 0);
-//     if (val > 0 && strlen(Buff)) {
-//         string Msg(Buff);
-//         Clnt.getMsg() += Msg;
-//         if (Clnt.getMsg().find('\n') == string::npos)
-//             return true;
-//         // Clnt.getMsg().erase(Clnt.getMsg().size() - 2);
-//         Clnt.getMsg().erase(0, Clnt.getMsg().find_first_not_of(" \t\n\v\f\r"));
-//         cout << "ClinetRequest from[" << Clnt.getHstName() << "]: " << Clnt.getMsg() << endl;
-//         return (Clnt.getMsg().empty()) ? true : Clnt.ParsAndExec();
-//     }
-//     cerr << "Reading Client[" << Clnt.getHstName() << "] Message : " << (val ? strerror(errno) : "Connection Closed.") << endl;
-//     this->RemoveClient(Clnt.getClntFd());
-//     return false;
-// }
 
 void    Server::RemoveClient(int fd) {
     for (size_t i = 0; i < this->ClFds.size(); i++) {
@@ -224,75 +272,53 @@ void    Server::RemoveClient(int fd) {
     }
     if (!this->Clients[fd].getChnls().empty()) {
         for (size_t i = 0; i < this->Clients[fd].getChnls().size(); i++) {
-            VcRemove(this->Channels[this->Clients[fd].getChnls()[i]]->getMembers(), &this->Clients[fd]);
+            this->Channels[this->Clients[fd].getChnls()[i]]->removeInvited(&this->Clients[fd]);
+            this->Channels[this->Clients[fd].getChnls()[i]]->removeOperator(&this->Clients[fd]);
+            this->Channels[this->Clients[fd].getChnls()[i]]->removeMember(&this->Clients[fd]);
             if (this->Channels[this->Clients[fd].getChnls()[i]]->getMembers().empty()) {
+				cout << BLU << "[ INFO ]\t" << WHT << this->Channels[this->Clients[fd].getChnls()[i]]->getName() << YLW 
+				<< " Channel Got destroyed" << C_CLS <<" " << WHT << localTime(time(0)) << C_CLS << endl;
                 delete this->Channels[this->Clients[fd].getChnls()[i]];
                 this->Channels.erase(this->Clients[fd].getChnls()[i]);
-                VcRemove(this->Clients[fd].getChnls(), this->Clients[fd].getChnls()[i]);
-                continue;
             }
-            VcRemove(this->Channels[this->Clients[fd].getChnls()[i]]->getOperators(), &this->Clients[fd]);
-            if (this->Channels[this->Clients[fd].getChnls()[i]]->getOperators().empty() && !this->Channels[this->Clients[fd].getChnls()[i]]->getMembers().empty())
-                this->Channels[this->Clients[fd].getChnls()[i]]->getOperators().push_back(this->Channels[this->Clients[fd].getChnls()[i]]->getMembers().front());
-            VcRemove(this->Channels[this->Clients[fd].getChnls()[i]]->getInvited(), &this->Clients[fd]);
-            VcRemove(this->Clients[fd].getChnls(), this->Clients[fd].getChnls()[i]);
         }
     }
     this->Clients.erase(fd);
     close(fd);
-    map<int, Client>::iterator it = this->Clients.begin();
-    cout << "\t---|Clients List|---" << endl;
-    for (;it != this->Clients.end(); it++)
-        cout << "Client:[" << it->second.getNckName() << "]in machine:[" << it->second.getHstName() << "] using socket[" << it->first <<"]" << endl;
 }
 
-template <typename T>
 
-void VcRemove(vector<T> &vc, T trg) {
-    size_t i = 0;
-    for (;i < vc.size(); i++)
-        if (vc[i] == trg)
-            break ;
-    if (i != vc.size())
-        vc.erase(vc.begin() + i);
-}
-
-// template <typename T>
-
-// bool    VcFind(vector<T> &vc, T trg) {
-//     for(size_t i = 0; i < vc.size(); i++)
-//         if (vc[i] == trg)
-//             return true;
-//     return false;
-// }
-
-void	Server::BroadCastMsg( const Client& reciever, const stringstream& msg ) const
+Client &               Server::getClient(string &NckName)
 {
-	short	nByte = send(reciever.getClntFd(), msg.str().c_str(), msg.str().size(), 0);
-	if (nByte == -1)
-		cerr << RED << "[ Error ] BroadCastMsg Function " << strerror(errno) << C_CLS << endl;
-	
+    map<int, Client>::iterator it = Server::getInstance()->getClients().begin();
+    map<int, Client>::iterator itend = Server::getInstance()->getClients().end();
+    for (; it != itend; it++)
+        if (it->second.getNckName() == NckName)
+            return it->second;
+    return it->second;
 }
 
-void	Server::RegistMsgReply(const Client& u)
+Channel *              Server::getChannel(string &NckName)
 {
-	cout << "ok" << endl;
-	stringstream	wMsg;
-		// RPL_WELCOME
-	const string&	nickName = u.getNckName();
-	wMsg << GRN << ":" << "<servername> 001 " << nickName 
-	<< " : Welcome to the Internet Relay Network" << "\r\n";
-		// RPL_YOURHOST
-	wMsg <<":" << "<servername> 002 " << nickName 
-	<< " : Your host is <servername>, running version <version> " << "\r\n";
-		// RPL_CREATED
-	wMsg << ":" << "<servername> 003 " << nickName 
-	<< " :This <servername> server was created " << Server::Instance->LocalTime << "\r\n";
-		// RPL_MYINFO
-	// <available umodes>: List of available user modes.
-	// <available cmodes>: List of available channel modes.
-	wMsg << ":" << "server 004 " << nickName 
-	<< " <servername>" << " <version> " << "<available umodes>" 
-	<< " <available cmodes>" << C_CLS << "\r\n";
-	Server::Instance->BroadCastMsg(u, wMsg);
+    return this->Channels[NckName];
 }
+
+bool                Server::isClient(string &NckName) {
+    for (map<int, Client>::iterator it = this->Clients.begin(); it != this->Clients.end(); it++)
+        if (it->second.getNckName() == NckName)
+            return true;
+    return false;
+}
+
+bool                Server::isClient(int ClntFd)
+{
+    return this->Clients.find(ClntFd) != this->Clients.end();
+}
+
+bool                Server::isChannel(string &chnl)
+{
+    return this->Channels.find(chnl) != this->Channels.end();
+}
+//##################################//
+//				LOGS				//
+//#################################//

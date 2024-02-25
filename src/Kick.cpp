@@ -7,57 +7,92 @@
  * @return True if the client was successfully kicked, false otherwise.
  */
 
-bool    Client::Kick(vector<string> cmd) {
-    for (size_t i = 0; i < cmd.size(); i++)
-        cout << "[" + cmd[i] + "]" << endl;
-    if (cmd.size() == 3) {
-        if (Server::getInstance()->getChannels().find(cmd[1]) != Server::getInstance()->getChannels().end()) {
-            if (VcFind(this->Chnls, cmd[1])) {
-                Channel *chnl = Server::getInstance()->getChannels()[cmd[1]];
-                if (chnl->isOperator(this)) {
-                    vector<Client *>::iterator it = chnl->getMembers().begin();
-                    for (; it != chnl->getMembers().end(); it++)
-                        if ((*it)->NckName == cmd[2])
-                            break;
-                    if (it == chnl->getMembers().end()) {
-                        map<int, Client> clnts = Server::getInstance()->getClients();
-                        map<int, Client>::iterator fnd = clnts.begin();
-                        for (;fnd != clnts.end(); fnd++)
-                            if (fnd->second.NckName == cmd[2])
-                                break ;
-                        if (fnd != clnts.end())
-                            ErrorMsgGenrator(":ircserv 441 ", " " + cmd[2] + " " + cmd[1] + " :They aren't on that channel", *this);
-                        else
-                            ErrorMsgGenrator(":ircserv 401 ", " " + cmd[2] + " :No such nick", *this);
-                        return false;
+bool Client::Kick(vector<string> cmd) {
+    if (cmd.size() == 3  || cmd.size() == 4) {
+        Server *srv = Server::getInstance();
+        if (srv->isChannel(cmd[1])) {
+            Channel *chnl = srv->getChannel(cmd[1]);
+            if (chnl->isOperator(this)) {
+                if (srv->isClient(cmd[2])) {
+                    Client &clt = srv->getClient(cmd[2]);
+                    if (chnl->isMember(&clt)) {
+                        SendMsg(*this, *chnl, cmd[0], ((cmd.size() == 4) ? cmd[3] : ""), cmd[1] + " " + cmd[2]);
+                        VcRemove(clt.Chnls, cmd[1]);
+                        chnl->kickUser(this, &clt);
+                        if (chnl->getMembers().empty()) {
+                            delete chnl;
+                            srv->getChannels().erase(cmd[1]);
+                        }
+                        return true;
                     }
-                    SendMsg(*this, *chnl, cmd[0], ":" + (*it)->NckName, cmd[1] + " " + (*it)->NckName);
-                    chnl->removeMember(*it);
-                    chnl->removeOperator(*it);
-                    VcRemove((*it)->Chnls, cmd[1]);
-                    if (chnl->getMembers().empty()) {
-                        delete chnl;
-                        Server::getInstance()->getChannels().erase(cmd[1]);
-                    }
-                    return true;
+                    else
+                        ErrorMsgGenrator(":IRCserv.1337.ma 441 ", " " + cmd[2] + " " + cmd[1] + " :They aren't on that channel", *this);
                 }
-                else {
-                    ErrorMsgGenrator(":ircserv 482 ", " " + cmd[1] + " :You're not channel operator", *this);
-                    return false;
-                }
+                else
+                    ErrorMsgGenrator(":IRCserv.1337.ma 401 ", " " + cmd[2] + " :No such nick", *this);
             }
-            else {
-                ErrorMsgGenrator(":ircserv 442 ", " " + cmd[1] + " :You're not on that channel", *this);
-                return false;
-            }
+            else if (chnl->isMember(this))
+                ErrorMsgGenrator(":IRCserv.1337.ma 482 ", " " + cmd[1] + " :You're not channel operator", *this);
+            else
+                ErrorMsgGenrator(":IRCserv.1337.ma 442 ", " " + cmd[1] + " :You're not on that channel", *this);
         }
-        else {
-            ErrorMsgGenrator(":ircserv 403 ", " " + cmd[1] + " :No such channel", *this);
-            return false;
-        }
+        else
+            ErrorMsgGenrator(":IRCserv.1337.ma 403 ", " " + cmd[1] + " :No such channel", *this);
     }
-    else {
-        ErrorMsgGenrator(":ircserv 461 ", " " + cmd[0] + " :Not enough parameters", *this);
-        return false;
-    }
+    else
+        ErrorMsgGenrator(":IRCserv.1337.ma 461 ", " " + cmd[0] + ((cmd.size() < 4) ? " :Not enough parameters" : " :Too much parameters"), *this);
+    return false;
 }
+
+// bool Client::Kick(vector<string> cmd) {
+
+//     if (cmd.size() != 3  && cmd.size() != 4)
+//     {
+//         ErrorMsgGenrator(":IRCserv.1337.ma 461 ", " " + cmd[0] + ((cmd.size() < 4) ? " :Not enough parameters" : " :Too much parameters"), *this);
+//         return (false);
+//     }
+
+//     Server *srv = Server::getInstance();
+//     if (!srv->isChannel(cmd[1]))
+//     {
+//         ErrorMsgGenrator(":IRCserv.1337.ma 403 ", " " + cmd[1] + " :No such channel", *this);
+//         return (false);
+//     }
+
+//     Channel *chnl = srv->getChannel(cmd[1]);
+//     if (!chnl->isMember(this))
+//     {
+//         ErrorMsgGenrator(":IRCserv.1337.ma 442 ", " " + cmd[1] + " :You're not on that channel", *this);
+//         return (false);
+//     }
+
+//     if (!chnl->isOperator(this))
+//     {
+//         ErrorMsgGenrator(":IRCserv.1337.ma 482 ", " " + cmd[1] + " :You're not channel operator", *this);
+//         return (false);
+//     }
+
+//     if (!srv->isClient(cmd[2])) 
+//     {
+//         ErrorMsgGenrator(":IRCserv.1337.ma 401 ", " " + cmd[2] + " :No such nick", *this);
+//         return (false);
+//     }
+
+//     Client &clt = srv->getClient(cmd[2]);
+//     if (chnl->isMember(&clt)) 
+//     {
+//         ErrorMsgGenrator(":IRCserv.1337.ma 441 ", " " + cmd[2] + " " + cmd[1] + " :They aren't on that channel", *this);
+//         return (false);
+//     }
+
+//     SendMsg(*this, *chnl, cmd[0], ((cmd.size() == 4) ? cmd[3] : ""), cmd[1] + " " + cmd[2]);
+//     VcRemove(clt.Chnls, cmd[1]);
+//     chnl->kickUser(this, &clt);
+//     if (chnl->getMembers().empty()) 
+//     {
+//         delete chnl;
+//         srv->getChannels().erase(cmd[1]);
+//     }
+//     return true;
+// }
+
